@@ -1,0 +1,185 @@
+<template>
+	<v-container fluid>
+        <v-container style="max-width: 700px;" v-if="userInfo">
+            <div class="title" style="text-align: center;">Upload Video</div>
+
+            <v-text-field v-model="title" label="Title"></v-text-field>
+            <v-select v-model="selectedChannelId" :items="userChannelsSelect" label="Channel" single-line autocomplete></v-select>
+            <v-select v-model="selectedCategoryAddress" :items="categoriesSelect" label="Category" single-line autocomplete></v-select>
+            <v-text-field v-model="description" label="Description" multi-line></v-text-field>
+
+            <v-select v-model="tags" label="Tags (enter to add tag)" chips tags></v-select>
+            <v-checkbox v-model="original" label="Original?"></v-checkbox>
+
+            <input class="file-input" ref="fileInput" type="file" accept="video/mp4,video/webm,video/ogg" id="fileUpload" style="display: none;" @change="uploadVideo()">
+            <v-btn :loading="loading" ripple color="primary" @click="pickVideo()">Pick File and Upload</v-btn>
+        </v-container>
+	</v-container>
+</template>
+
+<script>
+	var Router = require("../libs/router.js");
+	var searchDbQuery = require("../libs/search.js");
+
+	module.exports = {
+		props: ["userInfo", "userChannels", "langTranslation"],
+		name: "upload",
+		data: () => {
+			return {
+                title: "",
+                description: "",
+                tags: [],
+                original: false,
+                userChannelsSelect: [],
+                selectedChannelId: null,
+                categoriesSelect: [],
+                selectedCategoryAddress: null,
+                loading: false
+			};
+		},
+		beforeMount: function() {
+			var self = this;
+			/*this.$parent.$on("setLanguage", function(langTranslation) {
+				self.ZiteName = langTranslation["KxoId"];
+			});
+            this.ZiteName = this.langTranslation["KxoId"];*/
+            
+            this.userChannelsSelect = [];
+            for (var i = 0; i < this.userChannels.length; i++) {
+                this.userChannelsSelect.push({ text: this.userChannels[i].name, value: this.userChannels[i].channel_id });
+            }
+
+            this.getCategories();
+		},
+		mounted: function() {
+			var self = this;
+
+			this.$emit("setcallback", "update", function(userInfo) {
+                setTimeout(function() {
+                    self.userChannelsSelect = [];
+                    for (var i = 0; i < self.userChannels.length; i++) {
+                        self.userChannelsSelect.push({ text: self.userChannels[i].name, value: self.userChannels[i].channel_id });
+                    }
+    
+                    self.getCategories();
+                }, 100);
+			});
+		},
+		computed: {
+			isLoggedIn: function() {
+				if (this.userInfo == null) return false;
+				return this.userInfo.cert_user_id != null;
+			}
+		},
+		methods: {
+            getCategories: function() {
+                var self = this;
+
+                page.cmdp("mergerSiteList", [true])
+                    .then((categories) => {
+                        console.log(categories);
+                        //console.log(categories);
+                        var addresses = Object.keys(categories);
+                        for (var i = 0; i < addresses.length; i++) {
+                            if (addresses[i] == userChannelIndexMerger) continue;
+                            self.categoriesSelect.push({ value: addresses[i], text: categories[addresses[i]].content.title });
+                        }
+                    });
+            },
+			getCors: function(address, callback = null) {
+                var self = this;
+                this.pageNum = 0;
+                if(page.siteInfo.settings.permissions.indexOf("Cors:" + address) < 0) {
+                    page.cmd("corsPermission", address, function() {
+                            if (callback != null) callback();
+                        });
+                } else {
+                    if (callback != null) callback();
+                }
+			},
+			goto: function(to) {
+				Router.navigate(to);
+			},
+			login: function() {
+				page.selectUser();
+				return false;
+			},
+			gotoLink: function(to) {
+				console.log(to);
+				window.location = to;
+            },
+            pickVideo: function() {
+                this.loading = true;
+                this.$refs.fileInput.click();
+            },
+            uploadVideo: function() {
+                var self = this;
+
+                if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
+					alert("The File APIs are not fully supported in this browser.");
+					return;
+                }
+                
+                var that = this;
+				var fileUpload = self.$refs.fileInput;
+                var files = fileUpload.files;
+                
+                if (!files) {
+                    self.loading = false;
+					return;
+				}
+
+                var accepted = false;
+                for (let fX in files) {
+					let fY = files[fX];
+
+					if (!fY || typeof fY !== "object" || !fY.type.match("video/mp4|video/ogg|video/webm")) { // |audio|video      || !fY.name.match(/\.IMAGETYPE$/gm)
+						//page.cmd("wrapperNotification", ["error", "That file type is not supported."]);
+						continue;
+                    }
+                    
+                    accepted = true;
+
+					let reader = new FileReader();
+					reader.onload = function(event) {
+							let f_data = btoa(event.target.result);
+							let file_type = fY.type;
+
+							page.uploadBigFile(self.selectedCategoryAddress, fY, (output_url) => {
+									console.log("Uploaded video!");
+									fileUpload.value = null;
+									self.saveVideo(output_url);
+								});
+						};
+					reader.readAsBinaryString(fY);
+                }
+                
+                if (!accepted) {
+                    page.cmd("wrapperNotification", ["error", "That file type is not supported."]);
+                    self.loading = false;
+                }
+            },
+            saveVideo: function(output_url) {
+                var self = this;
+
+                page.editTableData(self.selectedCategoryAddress, "videos", function(date, data, tableData) {
+                    tableData.push({
+                        "video_id": date,
+                        "ref_channel_id": self.selectedChannelId,
+                        "title": self.title,
+                        "description": self.description,
+                        "tags": self.tags.join("|"),
+                        "original": self.original,
+                        "video_file": output_url,
+                        "date_added": date
+                    });
+
+                    return tableData;
+                }, function({ id, auth_address }) {
+                    self.loading = false;
+                    Router.navigate("channels/" + auth_address + "/" + self.selectedChannelId + "/v/" + id);
+                });
+            }
+		}
+	}
+</script>

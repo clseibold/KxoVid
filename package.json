@@ -1,0 +1,48 @@
+{
+  "name": "kxonetwork",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "patch-package"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krixano/KxoNetwork.git"
+  },
+  "keywords": [],
+  "author": "Christian Seibold",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/krixano/KxoNetwork/issues"
+  },
+  "homepage": "https://github.com/krixano/KxoNetwork#readme",
+  "description": "",
+  "devDependencies": {
+    "browserify": "^14.4.0",
+    "browserify-shim": "^3.8.14",
+    "gulp": "^4.0.0",
+    "gulp-autoprefixer": "^4.0.0",
+    "gulp-concat": "^2.6.1",
+    "gulp-minify-css": "^1.2.4",
+    "gulp-sass": "^3.2.0",
+    "gulp-sourcemaps": "^2.6.1",
+    "gulp-util": "^3.0.8",
+    "patch-package": "^4.0.0",
+    "uglifyify": "^4.0.5",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-fs": "^3.0.3",
+    "vinyl-source-stream": "^2.0.0",
+    "vueify": "^9.4.1",
+    "watchify": "^3.11.0"
+  },
+  "dependencies": {
+    "jdenticon": "^2.1.0",
+    "markdown-it": "^8.4.2",
+    "moment": "^2.21.0",
+    "node-sass": "^4.8.1",
+    "sanitize-html": "^1.19.0",
+    "vue": "^2.5.17",
+    "vuetify": "^1.0.19"
+  }
+}
