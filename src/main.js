@@ -58,8 +58,17 @@ var app = new Vue({
 		navbar: Navbar,
 		nav_drawer: NavDrawer,
 		currentView: null,
-		siteInfo: null,
-		userInfo: null,
+		siteInfo: {
+		},
+		userInfo: {
+		    keyvalue: {
+    		    ko_interface: false,
+    		    cs_interface: false,
+    		    subscriptions: []
+    		},
+		    cert_user_id: null,
+		    auth_address: null
+		},
 		userChannels: [],
 		gettingUserInfo: true,
 		langTranslation: defaultLang,
