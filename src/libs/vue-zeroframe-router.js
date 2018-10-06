@@ -66,11 +66,12 @@ function VueZeroFrameRouter_Init(Router, vueInstance, routes) {
 	}
 	Router.vueInstance = vueInstance;
 	Router.setView = function(i, object) {
-		this.vueInstance.currentView = object;
-		vueInstance.$refs.view.$mount();
-		vueInstance.$refs.view.$forceUpdate();
-		vueInstance.$refs.nav_drawer.$forceUpdate();
-		//this.vueInstance.$forceUpdate();
+		if (this.vueInstance.currentView == object) {
+			this.vueInstance.$refs.view.$mount();
+			this.vueInstance.$refs.view.$forceUpdate();
+		} else {
+			this.vueInstance.currentView = object;
+		}
 	}
 	Router.init();
 }

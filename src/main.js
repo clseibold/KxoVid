@@ -59,6 +59,10 @@ var app = new Vue({
 		nav_drawer: NavDrawer,
 		currentView: null,
 		siteInfo: {
+			privatekey: null,
+			cert_user_id: null,
+			auth_address: null,
+			settings: null,
 		},
 		userInfo: {
 		    keyvalue: {
@@ -67,7 +71,8 @@ var app = new Vue({
     		    subscriptions: []
     		},
 		    cert_user_id: null,
-		    auth_address: null
+			auth_address: null,
+			privatekey: null,
 		},
 		userChannels: [],
 		gettingUserInfo: true,
@@ -105,12 +110,16 @@ var app = new Vue({
                     keyvalue[row.key] = row.value;
                 }
 				
-				that.userInfo = {
+				that.$set(that.userInfo, 'privatekey', that.siteInfo.privatekey);
+				that.$set(that.userInfo, 'cert_user_id', that.siteInfo.cert_user_id);
+				that.$set(that.userInfo, 'auth_address', that.siteInfo.auth_address);
+				that.$set(that.userInfo, 'keyvalue', keyvalue);
+				/*that.userInfo = {
 					privatekey: that.siteInfo.privatekey,
 					cert_user_id: that.siteInfo.cert_user_id,
 					auth_address: that.siteInfo.auth_address,
 					keyvalue: keyvalue
-				};
+				};*/
 
 				console.log(keyvalue);
 
@@ -162,6 +171,17 @@ var app = new Vue({
 			if (!this[name + "Callback"]) return;
 			this[name + "Callback"](...params);
 			this.$emit(name);
+		},
+		setSiteInfo: function(siteInfo) {
+			//this.siteInfo = siteInfo;
+			console.log("Testtttt: ", siteInfo.cert_user_id);
+			this.$set(this.siteInfo, 'privatekey', siteInfo.privatekey);
+			this.$set(this.siteInfo, 'settings', siteInfo.settings);
+			this.$set(this.siteInfo, 'cert_user_id', siteInfo.cert_user_id);
+			this.$set(this.siteInfo, 'auth_address', siteInfo.auth_address);
+			this.getUserInfo();
+
+			console.log(this.siteInfo.cert_user_id);
 		}
 	}
 });
@@ -186,8 +206,9 @@ class ZeroApp extends ZeroFrame {
 				return this.cmdp("siteInfo", {});
 			}).then((siteInfo) => {
 				console.log(siteInfo);
-				self.siteInfo = siteInfo;
-				app.siteInfo = siteInfo;
+				this.siteInfo = siteInfo;
+				app.setSiteInfo(siteInfo);
+				//app.siteInfo = siteInfo;
 				
 				if(siteInfo.settings.permissions.indexOf("Merger:KxoVid") == -1) {
 					page.cmd("wrapperPermissionAdd", ["Merger:KxoVid"], function() {
@@ -196,7 +217,6 @@ class ZeroApp extends ZeroFrame {
 				} else {
 					page.addUserChannelIndexMerger();
 				}
-				
 
 				//app.callCallback("updateSiteInfo", siteInfo);
 				if (siteInfo.address!="14c5LUN73J7KKMznp9LvZWkxpZFWgE1sDz" && !siteInfo.settings.own){self.cmdp("wrapperNotification", ["warning", "Note: This was cloned from another zite. You<br>\ncan find the original zite at this address:<br>\n 14c5LUN73J7KKMznp9LvZWkxpZFWgE1sDz."]);}
@@ -223,9 +243,12 @@ class ZeroApp extends ZeroFrame {
 	onRequest(cmd, message) {
 		Router.listenForBack(cmd, message);
 		if (cmd === "setSiteInfo") {
-			this.siteInfo = message.params;
-			app.siteInfo = message.params;
-			app.getUserInfo();
+			if (message.params.address == this.siteInfo.address) {
+				this.siteInfo = message.params;
+				//app.siteInfo = message.params;
+				app.setSiteInfo(message.params);
+				//app.getUserInfo();
+			}
 		}
 
 		if (message.params.event && message.params.event[0] === "file_done") {
