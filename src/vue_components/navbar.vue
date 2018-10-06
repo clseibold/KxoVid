@@ -43,9 +43,12 @@
 		    	</v-list-tile>-->
 		    </v-list>
 		</v-menu>
-		<v-btn v-if="isLoggedIn && userChannels && userChannels.length > 0" icon class="hidden-sm-and-down" @click="goto('upload')">
-			<v-icon>cloud_upload</v-icon>
-		</v-btn>
+		<v-tooltip bottom v-if="isLoggedIn && userChannels && userChannels.length > 0" class="hidden-sm-and-down">
+			<v-btn slot="activator" icon @click="goto('upload')">
+				<v-icon>cloud_upload</v-icon>
+			</v-btn>
+			<span>Upload Video</span>
+		</v-tooltip>
 		<v-toolbar-items>
 			<v-btn flat v-if="!isLoggedIn" @click="login()">Sign In</v-btn>
 			<v-menu flat v-else offset-y>

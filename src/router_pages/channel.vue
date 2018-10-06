@@ -31,9 +31,12 @@
                         <span>Unsubscribe</span>
                     </v-tooltip>
                     <div v-if="isLoggedIn && userInfo.auth_address == auth_address">
-                        <v-btn icon @click="goto('channel/settings/' + channel.channel_id)">
-                            <v-icon>edit</v-icon>
-                        </v-btn>
+                        <v-tooltip bottom>
+                            <v-btn slot="activator" icon @click="goto('channel/settings/' + channel.channel_id)">
+                                <v-icon>edit</v-icon>
+                            </v-btn>
+                            <span>Edit Channel</span>
+                        </v-tooltip>
                     </div>
                 </v-layout>
                 <v-layout row slot="extension" class="grey darken-3">
@@ -50,13 +53,18 @@
 		<v-container style="max-width: 900px;">
             <v-layout row wrap fill-height>
                 <v-flex xs12 sm8>
-                    <strong>Recent Videos</strong>
-                    <div v-for="video in recent_videos" :key="video.video_id">
-                        <a href="#" @click.prevent="goto('channel/' + auth_address + '/' + id + '/v/' + video.video_id)">{{ video.title }}</a>
+                    <div class="title" style="margin-bottom: 8px;">Recent Videos</div>
+                    <div v-for="video in recent_videos" :key="video.video_id" style="margin-bottom: 8px;">
+                        <div class="subheading"><a :href="'./?/channel/' + auth_address + '/' + id + '/v/' + video.video_id" @click.prevent="goto('channel/' + auth_address + '/' + id + '/v/' + video.video_id)">{{ video.title }}</a></div>
+                        <div class="body-1">
+                            {{ video.description.substring(0, 150) }}
+                        </div>
+                        <small>Uploaded {{ getVideoDate(video) }}</small>
+                        <v-divider style="margin-top: 8px;"></v-divider>
                     </div>
                 </v-flex>
                 <v-flex xs12 sm4>
-                    <div class="title" style="text-align: center; margin-bottom: 5px;">About</div>
+                    <div class="title" style="text-align: center; margin-bottom: 8px;">About</div>
                     <p style="text-align: center;">{{ channel.about }}</p>
                 </v-flex>
             </v-layout>
@@ -65,9 +73,16 @@
 	</v-container>
 </template>
 
+<style>
+    a {
+        text-decoration: none;
+    }
+</style>
+
 <script>
 	var Router = require("../libs/router.js");
-	var searchDbQuery = require("../libs/search.js");
+    var searchDbQuery = require("../libs/search.js");
+    var moment = require("moment");
 
 	module.exports = {
 		props: ["userInfo", "langTranslation"],
@@ -133,6 +148,9 @@
                         console.log(results);
                         self.recent_videos = results;
                     });
+            },
+            getVideoDate: function(video) {
+                return moment(video.date_added).fromNow();
             },
 			getCors: function(address, callback = null) {
 				console.log("Test");

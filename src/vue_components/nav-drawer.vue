@@ -16,7 +16,7 @@
                 <v-list-tile-title>Trending</v-list-tile-title>
             </v-list-tile-content>
         </v-list-tile>
-        <v-list-tile href="./?/categories" @click.prevent="goto('categories')" v-if="!isLoggedIn">
+        <v-list-tile :class="{ 'menu-item-active': routerIsActive('categories') }" href="./?/categories" @click.prevent="goto('categories')" v-if="!isLoggedIn">
             <v-list-tile-action>
                 <v-icon>change_history</v-icon>
             </v-list-tile-action>
@@ -34,7 +34,7 @@
                     <v-list-tile-title>Subscriptions</v-list-tile-title>
                 </v-list-tile-content>
             </v-list-tile>
-            <v-list-tile href="./?/categories" @click.prevent="goto('categories')">
+            <v-list-tile :class="{ 'menu-item-active': routerIsActive('categories') }" href="./?/categories" @click.prevent="goto('categories')">
                 <v-list-tile-action>
                     <v-icon>change_history</v-icon>
                 </v-list-tile-action>

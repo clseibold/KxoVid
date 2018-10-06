@@ -72,6 +72,7 @@ function VueZeroFrameRouter_Init(Router, vueInstance, routes) {
 		} else {
 			this.vueInstance.currentView = object;
 		}
+		this.vueInstance.$refs.nav_drawer.$forceUpdate();
 	}
 	Router.init();
 }

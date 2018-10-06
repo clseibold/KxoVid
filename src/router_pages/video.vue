@@ -31,9 +31,12 @@
                         <span>Unsubscribe</span>
                     </v-tooltip>
                     <div v-if="isLoggedIn && userInfo.auth_address == auth_address">
-                        <v-btn icon @click="goto('channel/settings/' + channel.channel_id)">
-                            <v-icon>edit</v-icon>
-                        </v-btn>
+                        <v-tooltip bottom>
+                            <v-btn slot="activator" icon @click="">
+                                <v-icon>edit</v-icon>
+                            </v-btn>
+                            <span>Edit Video</span>
+                        </v-tooltip>
                     </div>
                 </v-layout>
                 <!--<v-layout row slot="extension" class="grey darken-3">
@@ -49,25 +52,54 @@
         </v-container>
 		<v-container style="max-width: 90%;" grid-list-lg>
             <v-layout row wrap fill-height>
+                <!-- Video -->
                 <v-flex xs12 md9>
                     <div v-if="video">
                         <video style="width: 100%;" :src="video.video_file" controls></video>
                     </div>
                 </v-flex>
+                <!-- Video Description -->
                 <v-flex xs12 md3>
                     <div class="title" style="margin-bottom: 15px;">{{video.title}}</div>
-                    <!--<v-divider></v-divider>-->
                     <p class="body-1" v-if="video" v-html="descriptionMarkdown"></p>
                 </v-flex>
+                <!-- Comments -->
+                <v-flex xs12 md9 v-if="channel && video">
+                    <v-divider style="margin-bottom: 8px;"></v-divider>
+                    <div class="subheading">{{ comments ? comments.length : "" }} Comments</div>
+                    <!--<v-divider style="margin-top: 8px; margin-bottom: 8px;"></v-divider>-->
+                    <div style="margin-bottom: 8px;" v-if="isLoggedIn">
+                        <v-text-field :loading="commentLoading" v-model="commentText" placeholder="Add a comment ..." multi-line rows="1" auto-grow></v-text-field>
+                        <v-btn :loading="commentLoading" ripple color="primary" small style="float: right;" @click="uploadComment()">Comment</v-btn>
+                        <div style="clear: both;"></div>
+                    </div>
+                    <v-divider style="margin-bottom: 8px;"></v-divider>
+                    <div style="margin-bottom: 30px;">
+                        <div v-for="comment in comments" style="margin-bottom: 12px;" :key="comment_id + '-' + comment.directory.replace('data/users/', '')">
+                            <v-layout row>
+                                <v-flex xs2 sm1 style="padding-left: 0; padding-right: 0;">
+                                    <div>
+                                        <svg v-bind:data-jdenticon-value="comment.directory.replace('data/users/', '')" style="width: 100%; max-width: 60px; margin-left: auto; margin-right: auto;"></svg>
+                                    </div>
+                                </v-flex>
+                                <v-flex xs10 sm11>
+                                    <a href="#" @click.prevent="" style="font-weight: bold;">{{ comment.cert_user_id }}</a>
+                                    <div class="body-2">{{ comment.body }}</div>
+                                    <small>{{ getDateFromNow(comment.date_added) }} {{ comment.date_updated ? "(edited)" : "" }}</small>
+                                </v-flex>
+                            </v-layout>
+                        </div>
+                    </div>
+                </v-flex>
             </v-layout>
-			<!--<span class="headline">{{ channel.name }}</span>-->
 		</v-container>
 	</v-container>
 </template>
 
 <script>
 	var Router = require("../libs/router.js");
-	var searchDbQuery = require("../libs/search.js");
+    var searchDbQuery = require("../libs/search.js");
+    var moment = require("moment");
 
 	module.exports = {
 		props: ["userInfo", "langTranslation"],
@@ -79,7 +111,10 @@
                 channel: null,
                 subscribed: false,
                 video_id: "",
-                video: null
+                video: null,
+                commentText: "",
+                commentLoading: false,
+                comments: [],
 			};
 		},
 		beforeMount: function() {
@@ -101,11 +136,13 @@
 
             this.determineSubscriptionStatus();
             this.getVideo();
+            self.getComments();
 
 			this.$emit("setcallback", "update", function(userInfo) {
                 self.userInfo = userInfo;
                 self.determineSubscriptionStatus();
                 self.getVideo();
+                self.getComments();
 			});
 		},
 		mounted: function() {
@@ -140,6 +177,21 @@
                         console.log(results);
                         self.video = results[0];
                     });
+            },
+            getComments: function() {
+                var self = this;
+                var query = "SELECT * FROM comments LEFT JOIN json USING (json_id) WHERE ref_video_auth_address=\"" + this.auth_address + "\" AND ref_channel_id=" + this.id + " AND ref_video_id=" + this.video_id + " ORDER BY date_added DESC";
+
+                console.log(query);
+
+                page.cmdp("dbQuery", [query])
+                    .then((results) => {
+                        console.log(results);
+                        self.comments = results;
+                    });
+            },
+            getDateFromNow: function(date_int) {
+                return moment(date_int).fromNow();
             },
 			getCors: function(address, callback = null) {
 				console.log("Test");
@@ -210,6 +262,29 @@
                     return data;
                 }, function() {
                     self.subscribed = false;
+                });
+            },
+            uploadComment: function() {
+                var self = this;
+
+                console.log(self.video.site);
+
+                self.commentLoading = true;
+                page.editTableData(self.video.site, "comments", function(date, data, tableData) {
+                    tableData.push({
+                        "comment_id": date,
+                        "ref_video_auth_address": self.auth_address,
+                        "ref_channel_id": self.channel.channel_id,
+                        "ref_video_id": self.video.video_id,
+                        "body": self.commentText,
+                        "date_added": date
+                    });
+
+                    return tableData;
+                }, function({ id, auth_address }) {
+                    self.commentLoading = false;
+                    self.commentText = "";
+                    self.getComments();
                 });
             }
 		}

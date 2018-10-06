@@ -46,14 +46,15 @@
             "cols": [
                 ["comment_id", "INTEGER"],
                 ["ref_video_auth_address", "TEXT"],
+                ["ref_channel_id", "INTEGER"],
                 ["ref_video_id", "INTEGER"],
                 ["body", "TEXT"],
                 ["date_updated", "INTEGER"],
                 ["date_added", "INTEGER"],
                 ["json_id", "INTEGER REFERENCES json(json_id)"]
             ],
-            "indexes": ["CREATE UNIQUE INDEX comment_index ON comments(json_id, comment_id)", "CREATE INDEX comment_id_ref ON comments(comment_id, ref_video_id, ref_video_auth_address)"],
-            "schema_changed": 5
+            "indexes": ["CREATE UNIQUE INDEX comment_index ON comments(json_id, comment_id)", "CREATE INDEX comment_id_ref ON comments(comment_id, ref_channel_id, ref_video_id, ref_video_auth_address)"],
+            "schema_changed": 7
         },
         "category_hubs": {
             "cols": [
