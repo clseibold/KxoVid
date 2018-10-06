@@ -119,7 +119,7 @@
             self.getSubscriptions();
             
             this.$emit("setcallback", "navDrawerUpdate", function(userInfo) {
-                self.userInfo = userInfo;
+                //self.userInfo = userInfo;
                 self.getSubscriptions(userInfo);
 			});
 		},

@@ -68,12 +68,12 @@
                     <v-divider style="margin-bottom: 8px;"></v-divider>
                     <div class="subheading">{{ comments ? comments.length : "" }} Comments</div>
                     <!--<v-divider style="margin-top: 8px; margin-bottom: 8px;"></v-divider>-->
-                    <div style="margin-bottom: 8px;" v-if="isLoggedIn">
+                    <div v-if="isLoggedIn">
                         <v-text-field :loading="commentLoading" v-model="commentText" placeholder="Add a comment ..." multi-line rows="1" auto-grow></v-text-field>
                         <v-btn :loading="commentLoading" ripple color="primary" small style="float: right;" @click="uploadComment()">Comment</v-btn>
                         <div style="clear: both;"></div>
+                        <v-divider style="margin-top: 8px; margin-bottom: 8px;"></v-divider>
                     </div>
-                    <v-divider style="margin-bottom: 8px;"></v-divider>
                     <div style="margin-bottom: 30px;">
                         <div v-for="comment in comments" style="margin-bottom: 12px;" :key="comment_id + '-' + comment.directory.replace('data/users/', '')">
                             <v-layout row>
@@ -139,7 +139,7 @@
             self.getComments();
 
 			this.$emit("setcallback", "update", function(userInfo) {
-                self.userInfo = userInfo;
+                //self.userInfo = userInfo;
                 self.determineSubscriptionStatus();
                 self.getVideo();
                 self.getComments();

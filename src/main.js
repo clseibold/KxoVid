@@ -148,6 +148,8 @@ var app = new Vue({
 				that.gettingUserInfo = false;
 				//that.$emit("setUserInfo", that.userInfo); // TODO: Not sure if I need this if I can pass in a function callback instead
 				//that.$emit("update", that.userInfo);
+				app.$refs.view.$forceUpdate();
+				app.$refs.nav_drawer.$forceUpdate();
 				app.callCallback("update", that.userInfo);
 				app.callCallback("navDrawerUpdate", that.userInfo);
 				if (f !== null && typeof f === "function") f();
@@ -174,7 +176,6 @@ var app = new Vue({
 		},
 		setSiteInfo: function(siteInfo) {
 			//this.siteInfo = siteInfo;
-			console.log("Testtttt: ", siteInfo.cert_user_id);
 			this.$set(this.siteInfo, 'privatekey', siteInfo.privatekey);
 			this.$set(this.siteInfo, 'settings', siteInfo.settings);
 			this.$set(this.siteInfo, 'cert_user_id', siteInfo.cert_user_id);
@@ -243,7 +244,7 @@ class ZeroApp extends ZeroFrame {
 	onRequest(cmd, message) {
 		Router.listenForBack(cmd, message);
 		if (cmd === "setSiteInfo") {
-			if (message.params.address == this.siteInfo.address) {
+			if (message.params.address == "14c5LUN73J7KKMznp9LvZWkxpZFWgE1sDz") {
 				this.siteInfo = message.params;
 				//app.siteInfo = message.params;
 				app.setSiteInfo(message.params);
