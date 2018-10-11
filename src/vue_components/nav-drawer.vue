@@ -26,7 +26,7 @@
         </v-list-tile>
 
         <div v-if="isLoggedIn">
-            <v-list-tile href="" @click.prevent="">
+            <v-list-tile :class="{ 'menu-item-active': routerIsActive('subscriptions') }" href="./?/subscriptions" @click.prevent="goto('subscriptions')">
                 <v-list-tile-action>
                     <v-icon>subscriptions</v-icon>
                 </v-list-tile-action>
@@ -42,7 +42,7 @@
                     <v-list-tile-title>Categories</v-list-tile-title>
                 </v-list-tile-content>
             </v-list-tile>
-            <v-divider></v-divider>
+            <!--<v-divider style="margin-top: 12px;"></v-divider>
             <v-subheader>Library</v-subheader>
             <v-list-tile href="" @click.prevent="">
                 <v-list-tile-action>
@@ -59,9 +59,9 @@
                 <v-list-tile-content>
                     <v-list-tile-title>Liked videos</v-list-tile-title>
                 </v-list-tile-content>
-            </v-list-tile>
+            </v-list-tile>-->
             <div v-if="subscriptions && subscriptions.length > 0">
-                <v-divider></v-divider>
+                <v-divider style="margin-top: 12px;"></v-divider>
                 <v-subheader>Subscriptions</v-subheader>
                 <v-list-tile v-for="channel in subscriptions" :key="channel.directory.replace('data/users/', '') + '-' + channel.channel_id" :class="{ 'menu-item-active': channelIsActive(channel.directory.replace('data/users/', ''), channel.channel_id) }" :href="'./?/channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id" @click.prevent="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">
                     <v-list-tile-avatar>
@@ -73,7 +73,7 @@
                 </v-list-tile>
             </div>
             <div v-if="userChannels && userChannels.length > 0">
-                <v-divider></v-divider>
+                <v-divider style="margin-top: 12px;"></v-divider>
                 <v-subheader>Your Channels</v-subheader>
                 <v-list-tile v-for="channel in userChannels" :key="channel.channel_id" :class="{ 'menu-item-active': channelIsActive(channel.directory.replace('data/users/', ''), channel.channel_id) }" :href="'./?/channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id" @click.prevent="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">
                     <v-list-tile-avatar>
@@ -85,6 +85,11 @@
                 </v-list-tile>
             </div>
         </div>
+
+        <v-divider style="margin-top: 12px; margin-bottom: 12px;"></v-divider>
+        <v-list-tile :class="{ 'menu-item-active': routerIsActive('device-settings') }" href="./?/device-settings" @click.prevent="goto('device-settings')">
+            <v-list-tile-title>Device Settings</v-list-tile-title>
+        </v-list-tile>
     </v-list>
 </template>
 

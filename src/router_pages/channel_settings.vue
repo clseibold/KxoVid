@@ -6,6 +6,7 @@
             <v-text-field label="Name" v-model="name"></v-text-field>
             <v-text-field multi-line label="About" v-model="about"></v-text-field>
             <v-select label="Toolbar Color" :items="toolbar_colors" v-model="toolbar_color"></v-select>
+            <v-select label="Background Color" :items="background_colors" v-model="background_color"></v-select>
             <v-btn ripple color="primary" @click="saveChannel()">Save</v-btn>
             <v-btn ripple dark color="red" @click="deleteChannel()">Delete</v-btn>
 		</v-container>
@@ -26,7 +27,9 @@
                 name: "",
                 about: "",
                 toolbar_colors: ["dark", "blue", "red", "green", "yellow", "purple", "black", "indigo"],
-                toolbar_color: ""
+                toolbar_color: "",
+                background_colors: ["white", "dark", "dark-blue", "light-blue", "light-teal"],
+                background_color: "",
 			};
 		},
 		beforeMount: function() {
@@ -45,7 +48,6 @@
             this.getChannel();
 
 			this.$emit("setcallback", "update", function(userInfo) {
-                self.userInfo = userInfo;
                 self.getChannel(userInfo);
 			});
 		},
@@ -66,6 +68,7 @@
                     self.name = self.channel.name;
                     self.about = self.channel.about;
                     self.toolbar_color = self.channel.toolbar_color == "" || self.channel.toolbar_color == null ? "dark" : self.channel.toolbar_color;
+                    self.background_color = self.channel.background_color == "" || self.channel.background_color == null ? "white" : self.channel.background_color;
                 });
             },
 			getCors: function(address, callback = null) {
@@ -97,12 +100,14 @@
                 var self = this;
                 page.editTableData(userChannelIndexMerger, "channels", function(date_added, data, tableData) {
                     var actual_toolbar_color = self.toolbar_color == "dark" ? "" : self.toolbar_color;
+                    //var actual_toolbar_color = self.toolbar_color == "dark" ? "" : self.toolbar_color;
 
                     for (var i = 0; i < tableData.length; i++) {
                         if (tableData[i].channel_id == self.id) {
                             tableData[i].name = self.name;
                             tableData[i].about = self.about;
                             tableData[i].toolbar_color = actual_toolbar_color;
+                            tableData[i].background_color = self.background_color;
 
                             return tableData;
                         }

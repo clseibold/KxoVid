@@ -74,11 +74,12 @@
                 ["name", "TEXT"],
                 ["about", "TEXT"],
                 ["toolbar_color", "TEXT"],
+                ["background_color", "TEXT"],
                 ["date_added", "INTEGER"],
                 ["json_id", "INTEGER REFERENCES json(json_id)"]
             ],
             "indexes": ["CREATE UNIQUE INDEX channel_index ON channels(json_id, channel_id)", "CREATE INDEX channel_id_name ON channels(channel_id, name)"],
-            "schema_changed": 7
+            "schema_changed": 8
         }
     }
 }

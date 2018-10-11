@@ -2,9 +2,14 @@
 	<v-toolbar clipped-left app dark style="padding-right: 45px; padding-left: 45px;" color="primary">
 		<v-toolbar-side-icon @click.stop="toggleDrawer()"></v-toolbar-side-icon>
 		<v-toolbar-title href="./?/" style="cursor: pointer;" @click.prevent="goto('')">{{ ZiteName }} (beta)</v-toolbar-title>
-		<v-spacer class="hidden-md-and-down"></v-spacer>
-		<v-text-field class="hidden-md-and-down" solo flat light hide-details placeholder="Search" v-model="search" prepend-icon="search"></v-text-field>
-		<v-spacer></v-spacer>
+		<v-spacer class="hidden-md-and-down">
+			<div style="width: 350px; margin: auto;">
+				<!--<v-spacer class="hidden-md-and-down"></v-spacer>-->
+				<v-text-field class="hidden-md-and-down" solo flat light hide-details placeholder="Search" v-model="search" prepend-icon="search"></v-text-field>
+				<!--<v-spacer></v-spacer>-->
+			</div>
+		</v-spacer>
+		<v-spacer class="hidden-lg-and-up"></v-spacer>
 		<!--<v-toolbar-items style="margin-left: 10px;">-->
 			<!--<v-btn flat>News</v-btn>-->
 			<!--<v-btn flat @click="goto('plugins')">Plugin Store</v-btn>-->
@@ -43,6 +48,14 @@
 		    	</v-list-tile>-->
 		    </v-list>
 		</v-menu>
+		<v-tooltip bottom v-if="castingAllowed">
+			<v-btn slot="activator" icon @click="castClick">
+				<v-icon v-if="!isCasting">cast</v-icon>
+				<v-icon v-if="isCasting">cast_connected</v-icon>
+			</v-btn>
+			<span v-if="!isCasting">Start Casting</span>
+			<span v-if="isCasting">Stop Casting</span>
+		</v-tooltip>
 		<v-tooltip bottom v-if="isLoggedIn && userChannels && userChannels.length > 0" class="hidden-sm-and-down">
 			<v-btn slot="activator" icon @click="goto('upload')">
 				<v-icon>cloud_upload</v-icon>
@@ -60,13 +73,14 @@
 					<span class="hidden-xs-only">{{ userInfo.cert_user_id }}</span>
 				</v-btn>
 				<v-list>
-					<v-list-tile v-for="channel in userChannels.slice(0, 5)" :key="channel.channel_id" @click="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">
+					<v-list-tile v-for="channel in userChannels.slice(0, 5)" :key="channel.channel_id" :href="'./?/channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id" @click.prevent="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">
 						<v-list-tile-title>{{ channel.name }}</v-list-tile-title>
 					</v-list-tile>
-					<v-list-tile @click="goto('channel/create')"><v-list-tile-title>Create Channel</v-list-tile-title></v-list-tile>
-					<v-divider></v-divider>
-					<v-list-tile @click="goto('profile')"><v-list-tile-title>Profile</v-list-tile-title></v-list-tile>
-					<v-list-tile @click="goto('settings')"><v-list-tile-title>Settings</v-list-tile-title></v-list-tile>
+					<v-list-tile href="./?/channel/create" @click.prevent="goto('channel/create')"><v-list-tile-title>Create Channel</v-list-tile-title></v-list-tile>
+					<v-divider style="margin-top: 12px; margin-bottom: 12px;"></v-divider>
+					<!--<v-list-tile @click="goto('profile')"><v-list-tile-title>Profile</v-list-tile-title></v-list-tile>
+					<v-list-tile @click="goto('settings')"><v-list-tile-title>Settings</v-list-tile-title></v-list-tile>-->
+					<v-list-tile href="./?/device-settings" @click.prevent="goto('device-settings')"><v-list-tile-title>Device Settings</v-list-tile-title></v-list-tile>
 				</v-list>
 			</v-menu>
 		</v-toolbar-items>
@@ -77,7 +91,7 @@
 	var Router = require("../libs/router.js");
 
 	module.exports = {
-		props: ["userInfo", "userChannels", "langTranslation"],
+		props: ["castingAllowed", "isCasting", "castSession", "userInfo", "userChannels", "langTranslation"],
 		name: "navbar",
 		data: () => {
 			return {
@@ -105,6 +119,11 @@
 			}
 		},
 		methods: {
+			castClick: function() {
+				if (!this.isCasting)
+					this.$emit('startcasting');
+				else this.$emit('stopcasting');
+			},
 			toggleDrawer: function() {
 				this.$emit("toggle-drawer");
 			},

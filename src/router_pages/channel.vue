@@ -1,7 +1,7 @@
 <template>
-	<v-container fluid v-if="channel" style="padding: 0;">
+	<v-container fluid v-if="channel" style="padding: 0; height: 100%;" :class="getBackground">
         <v-container style="margin: 0; padding: 0;" fluid>
-            <v-toolbar dark flat dense prominent extended :color="channel.toolbar_color || ''">
+            <v-toolbar :dark="toolbar_dark" flat dense prominent extended :color="channel.toolbar_color || ''">
                 <!--<div style="max-width: 900px; margin-top: 0; margin-bottom: 0; margin-left: auto; margin-right: auto; padding: 0;">-->
                 <v-layout row style="max-width: 900px; margin-left: auto; margin-right: auto;">
                     <v-toolbar-title>
@@ -40,35 +40,52 @@
                     </div>
                 </v-layout>
                 <v-layout row slot="extension" class="grey darken-3">
-                    <v-tabs show-arrows dark centered style="max-width: 900px; margin-left: auto; margin-right: auto;">
-                        <v-tab>Overview</v-tab>
-                        <v-tab>Videos</v-tab>
-                        <v-tab>Playlists</v-tab>
-                        <v-tab>Discussion</v-tab>
+                    <v-tabs show-arrows dark centered v-model="currentTab" style="max-width: 900px; margin-left: auto; margin-right: auto;">
+                        <v-tab key="overview" ripple>Overview</v-tab>
+                        <v-tab key="videos" ripple>Videos</v-tab>
+                        <v-tab key="playlists" ripple>Playlists</v-tab>
+                        <!--<v-tab>Discussion</v-tab>-->
                     </v-tabs>
                 </v-layout>
                 <!--</div>-->
             </v-toolbar>
         </v-container>
 		<v-container style="max-width: 900px;">
-            <v-layout row wrap fill-height>
-                <v-flex xs12 sm8>
-                    <div class="title" style="margin-bottom: 8px;">Recent Videos</div>
-                    <div v-for="video in recent_videos" :key="video.video_id" style="margin-bottom: 8px;">
-                        <div class="subheading"><a :href="'./?/channel/' + auth_address + '/' + id + '/v/' + video.video_id" @click.prevent="goto('channel/' + auth_address + '/' + id + '/v/' + video.video_id)">{{ video.title }}</a></div>
-                        <div class="body-1">
-                            {{ video.description.substring(0, 150) }}
+            <v-tabs-items v-model="currentTab">
+                <!-- Overview Tab -->
+                <v-tab-item key="overview">
+                    <v-layout row wrap fill-height>
+                        <v-flex xs12 sm8>
+                            <div class="title" style="margin-bottom: 8px;">Recent Videos</div>
+                            <div v-for="video in recent_videos" :key="video.video_id" style="margin-bottom: 8px;">
+                                <div class="subheading"><a :href="'./?/channel/' + auth_address + '/' + id + '/v/' + video.video_id" @click.prevent="goto('channel/' + auth_address + '/' + id + '/v/' + video.video_id)">{{ video.title }}</a></div>
+                                <div class="body-1">
+                                    {{ video.description.substring(0, 150) }}
+                                </div>
+                                <small>Uploaded {{ getVideoDate(video) }}</small>
+                                <v-divider :dark="content_dark" style="margin-top: 8px;"></v-divider>
+                            </div>
+                        </v-flex>
+                        <v-flex xs12 sm4>
+                            <div class="title" style="text-align: center; margin-bottom: 8px;">About</div>
+                            <p style="text-align: center;">{{ channel.about }}</p>
+                        </v-flex>
+                    </v-layout>
+                </v-tab-item>
+                <!-- Videos Tab -->
+                <v-tab-item key="videos">
+                    <v-container style="max-width: 700px;">
+                        <div v-for="video in videos" :key="video.video_id" style="margin-bottom: 8px;">
+                            <div class="subheading"><a :href="'./?/channel/' + auth_address + '/' + id + '/v/' + video.video_id" @click.prevent="goto('channel/' + auth_address + '/' + id + '/v/' + video.video_id)">{{ video.title }}</a></div>
+                            <div class="body-1">
+                                {{ video.description.substring(0, 150) }}
+                            </div>
+                            <small>Uploaded {{ getVideoDate(video) }}</small>
+                            <v-divider :dark="content_dark" style="margin-top: 8px;"></v-divider>
                         </div>
-                        <small>Uploaded {{ getVideoDate(video) }}</small>
-                        <v-divider style="margin-top: 8px;"></v-divider>
-                    </div>
-                </v-flex>
-                <v-flex xs12 sm4>
-                    <div class="title" style="text-align: center; margin-bottom: 8px;">About</div>
-                    <p style="text-align: center;">{{ channel.about }}</p>
-                </v-flex>
-            </v-layout>
-			<!--<span class="headline">{{ channel.name }}</span>-->
+                    </v-container>
+                </v-tab-item>
+            </v-tabs-items>
 		</v-container>
 	</v-container>
 </template>
@@ -93,7 +110,9 @@
                 id: "",
                 channel: null,
                 subscribed: false,
-                recent_videos: []
+                recent_videos: [],
+                videos: [],
+                currentTab: ""
 			};
 		},
 		beforeMount: function() {
@@ -103,6 +122,12 @@
 				self.ZiteName = langTranslation["KxoId"];
 			});
             this.ZiteName = this.langTranslation["KxoId"];*/
+
+            this.channel = null;
+            this.subscribed = false;
+            this.recent_videos = [];
+            this.videos = [];
+            this.currentTab = "";
             
             this.auth_address = Router.currentParams["auth_address"];
             this.id = Router.currentParams["id"];
@@ -114,11 +139,13 @@
 
             this.determineSubscriptionStatus();
             this.getRecentVideos();
+            this.getVideos();
 
 			this.$emit("setcallback", "update", function(userInfo) {
-                self.userInfo = userInfo;
+                //self.userInfo = userInfo;
                 self.determineSubscriptionStatus();
                 self.getRecentVideos();
+                self.getVideos();
 			});
 		},
 		mounted: function() {
@@ -128,7 +155,29 @@
 			isLoggedIn: function() {
 				if (this.userInfo == null) return false;
 				return this.userInfo.cert_user_id != null;
-			}
+            },
+            toolbar_dark: function() {
+                if (!this.channel) return true;
+
+                if (this.channel.toolbar_color == "yellow") return false;
+                return true;
+            },
+            content_dark: function() {
+                if (!this.channel) return false;
+
+                if (this.channel.background_color == "white") return false;
+                else if (this.channel.background_color == "dark") return true;
+            },
+            getBackground: function() {
+                switch (this.channel.background_color) {
+                    case "white": return "";
+                    case "dark": return "grey darken-4 grey--text text--lighten-5";
+                    case "dark-blue": return "blue-grey darken-4 grey--text text--lighten-5";
+                    case "light-blue": return "blue-grey lighten-4";
+                    case "light-teal": return "teal lighten-5";
+                    default: return "";
+                }
+            }
 		},
 		methods: {
             determineSubscriptionStatus: function() {
@@ -143,10 +192,18 @@
             getRecentVideos: function() {
                 var self = this;
 
-                page.cmdp("dbQuery", ["SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.auth_address + "\" AND ref_channel_id=" + this.id + " ORDER BY date_added DESC LIMIT 5"])
+                page.cmdp("dbQuery", ["SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.auth_address + "\" AND ref_channel_id=" + this.id + " ORDER BY date_added DESC LIMIT 8"])
                     .then((results) => {
                         console.log(results);
                         self.recent_videos = results;
+                    });
+            },
+            getVideos: function() {
+                var self = this;
+
+                page.cmdp("dbQuery", ["SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.auth_address + "\" AND ref_channel_id=" + this.id + " ORDER BY date_added DESC"])
+                    .then((results) => {
+                        self.videos = results;
                     });
             },
             getVideoDate: function(video) {

@@ -37,6 +37,7 @@
     "watchify": "^3.11.0"
   },
   "dependencies": {
+    "babel-polyfill": "^6.26.0",
     "jdenticon": "^2.1.0",
     "markdown-it": "^8.4.2",
     "moment": "^2.22.2",

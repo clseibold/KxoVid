@@ -1,3 +1,6 @@
+// For casting ability
+//require("./libs/cast_sender_v1.js");
+
 version = "0.1";
 /*ziteLanguages = [
 	"CS", "DA", "DE", "EN", "ES", "EO", "FR", "HU", "IT", "KO", "NL", "PL", "PT", "PT-BR", "RU", "TR", "UK", "ZH", "ZH-TW"
@@ -23,6 +26,8 @@ jdenticon.config = {
 	replaceMode: "observe"
 };
 
+require('babel-polyfill');
+
 var ZeroFrame = require("./libs/ZeroFrame.js");
 var Router = require("./libs/router.js");
 var searchDbQuery = require("./libs/search.js");
@@ -46,12 +51,12 @@ var NavDrawer = require("./vue_components/nav-drawer.vue");
 var app = new Vue({
 	el: "#app",
 	template: `<div><v-app>
-			<v-navigation-drawer app clipped fixed light width="225" hide-overlay v-model="drawer">
-				<component ref="nav_drawer" :is="nav_drawer" v-model="drawer" v-on:setcallback="setCallback" :user-info="userInfo" :site-info="siteInfo" :user-channels="userChannels" :lang-translation="langTranslation"></component>
+			<v-navigation-drawer app clipped fixed light width="225" hide-overlay v-model="drawer" style="padding-bottom: 50px;">
+				<component ref="nav_drawer" :is="nav_drawer" v-model="drawer" v-on:setcallback="setCallback" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :user-channels="userChannels" :lang-translation="langTranslation"></component>
 			</v-navigation-drawer>
-			<component ref="navbar" :is="navbar" v-on:toggle-drawer="toggleDrawer" v-on:setcallback="setCallback" :user-info="userInfo" :site-info="siteInfo" :user-channels="userChannels" :lang-translation="langTranslation"></component>
+			<component ref="navbar" :is="navbar" v-on:toggle-drawer="toggleDrawer" v-on:setcallback="setCallback" :user-settings="userSettings" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :user-channels="userChannels" :lang-translation="langTranslation" v-on:startcasting="startCasting" v-on:stopcasting="stopCasting"></component>
 			<v-content>
-				<component ref="view" :is="currentView" v-on:setcallback="setCallback" v-on:get-user-info="getUserInfo()" :user-info="userInfo" :site-info="siteInfo" :getting-user-info="gettingUserInfo" :user-channels="userChannels" :lang-translation="langTranslation"></component>
+				<component ref="view" :is="currentView" v-on:setcallback="setCallback" v-on:get-user-info="getUserInfo()" :user-settings="userSettings" v-on:setusersettings="setUserSettings" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :getting-user-info="gettingUserInfo" :user-channels="userChannels" :lang-translation="langTranslation" v-on:stopcasting="stopCasting"></component>
 			</v-content>
 		</v-app></div>`,
 	data: {
@@ -80,9 +85,66 @@ var app = new Vue({
 		updateCallback: null,
 		navDrawerUpdateCallback: null,
 		updateSiteInfoCallback: null,
-		drawer: null
+		castingAllowed: false, // For Chromecast support
+		isCasting: false,
+		castSession: null,
+		drawer: null,
+		userSettings: {
+			allowCasting: false,
+			castingServer: ""
+		},
+	},
+	beforeMount: function() {
+		if (chrome) {
+			this.castingAllowed = true;
+		}
 	},
 	methods: {
+		setUserSettings: function(settings) {
+			this.$set(this.userSettings, "allowCasting", settings.allowCasting);
+			this.$set(this.userSettings, "castingServer", settings.castingServer);
+		},
+		startCasting: function() {
+			var self = this;
+
+			var startCasting = () => {
+				chrome.cast.requestSession(function(castSession) {
+					self.isCasting = true;
+					self.castSession = castSession;
+					console.log(castSession);
+				}, (err) => {
+					console.log("Failed: ", err);
+				});
+			}
+
+			if (!chrome.cast) {
+				page.cmd("wrapperConfirm", ["Download file from internet to allow Casting?", "Yes"], (confirmed) => {
+					if (confirmed) {
+						var script = document.createElement("script");
+						script.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
+						document.head.appendChild(script);
+						//document.getElementsByTagName("head").innerHTML += '<script src="//www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>';
+						setTimeout(function() {
+							self.initializeCasting(function() {
+								startCasting();
+							});
+						}, 1000);
+						page.cmd("wrapperConfirm", ["Automatically allow Casting when you visit the zite?", "Yes"], (confirmed) => {
+							if (confirmed) {
+								page.cmd("userSetSettings", [{ allowCasting: true, castingServer: self.userSettings.castingServer }]);
+								self.setUserSettings({ allowCasting: true, castingServer: self.userSettings.castingServer });
+							}
+						});
+					}
+				});
+			} else {
+				startCasting();
+			}
+		},
+		stopCasting: function() {
+			this.castSession.stop();
+			this.isCasting = false;		  
+		},
 		toggleDrawer: function() {
 			this.drawer = !this.drawer;
 		},
@@ -110,16 +172,19 @@ var app = new Vue({
                     keyvalue[row.key] = row.value;
                 }
 				
-				that.$set(that.userInfo, 'privatekey', that.siteInfo.privatekey);
-				that.$set(that.userInfo, 'cert_user_id', that.siteInfo.cert_user_id);
-				that.$set(that.userInfo, 'auth_address', that.siteInfo.auth_address);
-				that.$set(that.userInfo, 'keyvalue', keyvalue);
-				/*that.userInfo = {
-					privatekey: that.siteInfo.privatekey,
-					cert_user_id: that.siteInfo.cert_user_id,
-					auth_address: that.siteInfo.auth_address,
-					keyvalue: keyvalue
-				};*/
+				if (that.userInfo != null) {
+					that.$set(that.userInfo, 'privatekey', that.siteInfo.privatekey);
+					that.$set(that.userInfo, 'cert_user_id', that.siteInfo.cert_user_id);
+					that.$set(that.userInfo, 'auth_address', that.siteInfo.auth_address);
+					that.$set(that.userInfo, 'keyvalue', keyvalue);
+				} else {
+					that.userInfo = {
+						privatekey: that.siteInfo.privatekey,
+						cert_user_id: that.siteInfo.cert_user_id,
+						auth_address: that.siteInfo.auth_address,
+						keyvalue: keyvalue
+					};
+				}
 
 				console.log(keyvalue);
 
@@ -176,13 +241,39 @@ var app = new Vue({
 		},
 		setSiteInfo: function(siteInfo) {
 			//this.siteInfo = siteInfo;
-			this.$set(this.siteInfo, 'privatekey', siteInfo.privatekey);
+			this.$set(this.siteInfo, 'privatekey', siteInfo.privatekey || false);
 			this.$set(this.siteInfo, 'settings', siteInfo.settings);
 			this.$set(this.siteInfo, 'cert_user_id', siteInfo.cert_user_id);
 			this.$set(this.siteInfo, 'auth_address', siteInfo.auth_address);
 			this.getUserInfo();
 
 			console.log(this.siteInfo.cert_user_id);
+		},
+		initializeCasting: function(onSuccess = null) {
+			var self = this;
+
+			console.log("Initializing casting");
+
+			var sessionRequest = new chrome.cast.SessionRequest(chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID);
+			var apiConfig = new chrome.cast.ApiConfig(sessionRequest, function(e) {
+				// sessionListener
+				console.log(e);
+			}, function(e) {
+				// receiverListener
+				console.log(e);
+				if( e !== chrome.cast.ReceiverAvailability.AVAILABLE) {
+					//self.castingAllowed = false;
+				}
+			});
+			chrome.cast.initialize(apiConfig, function() {
+				// onInitSuccess
+				console.log("Initialized casting: success!");
+				if (onSuccess) {
+					onSuccess();
+				}
+			}, function() {
+				// onFailed
+			});
 		}
 	}
 });
@@ -190,6 +281,18 @@ var app = new Vue({
 class ZeroApp extends ZeroFrame {
 	onOpenWebsocket() {
 		var self = this;
+
+		this.cmdp("userGetSettings")
+			.then((settings) => {
+				app.$set(app.userSettings, "allowCasting", settings.allowCasting || false);
+				app.$set(app.userSettings, "castingServer", settings.castingServer || "https://0net.io/");
+				if (settings.allowCasting) {
+					var script = document.createElement("script");
+					script.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
+					document.head.appendChild(script);
+					setTimeout(app.initializeCasting, 1000);
+				}
+			});
 
 		this.cmdp("serverInfo", {})
 			.then((serverInfo) => {
@@ -247,6 +350,7 @@ class ZeroApp extends ZeroFrame {
 			if (message.params.address == "14c5LUN73J7KKMznp9LvZWkxpZFWgE1sDz") {
 				this.siteInfo = message.params;
 				//app.siteInfo = message.params;
+				console.log("onRequest SiteInfo: ", message.params);
 				app.setSiteInfo(message.params);
 				//app.getUserInfo();
 			}
@@ -484,8 +588,13 @@ var Categories = require("./router_pages/categories.vue");
 var AddCategory = require("./router_pages/add_category.vue");
 var Upload = require("./router_pages/upload.vue");
 var Video = require("./router_pages/video.vue");
+var Subscriptions = require("./router_pages/subscriptions.vue");
+
+var DeviceSettings = require("./router_pages/device_settings.vue");
 
 VueZeroFrameRouter.VueZeroFrameRouter_Init(Router, app, [
+	{ route: "device-settings", component: DeviceSettings },
+	{ route: "subscriptions", component: Subscriptions },
 	{ route: "upload", component: Upload },
 	{ route: "categories/add", component: AddCategory },
 	{ route: "categories", component: Categories },
@@ -495,3 +604,53 @@ VueZeroFrameRouter.VueZeroFrameRouter_Init(Router, app, [
 	{ route: "channel/:auth_address/:id", component: Channel },
 	{ route: "", component: Home }
 ]);
+
+// ---------------------------------
+/*
+window['__onGCastApiAvailable'] = function(isAvailable) {
+	if (isAvailable) {
+	  initializeCastApi();
+	  //app.$set(app, "castingAllowed", true);
+	  //app.castingAllowed = true;
+	}
+};
+
+initializeCastApi = function() {
+	cast.framework.CastContext.getInstance().setOptions({
+		receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+		autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+	  });
+};
+
+window.__onGCastApiAvailable = function(isAvailable){
+    if(! isAvailable){
+        return false;
+    }
+
+    var castContext = cast.framework.CastContext.getInstance();
+
+    castContext.setOptions({
+        autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
+        receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID
+    });
+
+    var stateChanged = cast.framework.CastContextEventType.CAST_STATE_CHANGED;
+    castContext.addEventListener(stateChanged, function(event){
+		console.log(event);
+		console.log("Create Cast stuff!");
+		console.log('https://0net.io/' + document.getElementById('vid').src.replace('http://127.0.0.1:43110/', ''));
+        var castSession = castContext.getCurrentSession();
+        var media = new chrome.cast.media.MediaInfo('https://0net.io/' + document.getElementById('vid').src.replace('http://127.0.0.1:43110/', ''), 'video/mp4');
+        var request = new chrome.cast.media.LoadRequest(media);
+
+        castSession && castSession
+            .loadMedia(request)
+            .then(function(){
+                console.log('Success');
+            })
+            .catch(function(error){
+                console.log('Error: ' + error);
+            });
+    });
+};
+*/

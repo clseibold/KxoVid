@@ -5,7 +5,7 @@
             <v-container grid-list-xl>
                 <v-layout row wrap>
                     <v-flex xs12 sm6>
-                        <v-card v-for="category in categories.slice(0, Math.round(categories.length / 2.0))" @click.native="addMerger(category.address)" style="cursor: pointer;">
+                        <v-card v-for="category in categories.slice(0, Math.round(categories.length / 2.0))" @click.native="addMerger(category.address)" style="cursor: pointer; margin-bottom: 8px;">
                             <div style="text-align: center;"><strong style="color: blue;">{{ category.name }}</strong></div>
                             <div style="text-align: center;">
                                 {{ category.description.substring(0, 200) }}<br>
@@ -14,7 +14,7 @@
                         </v-card>
                     </v-flex>
                     <v-flex xs12 sm6>
-                        <v-card v-for="category in categories.slice(Math.round(categories.length / 2.0))" @click.native="addMerger(category.address)" style="cursor: pointer;">
+                        <v-card v-for="category in categories.slice(Math.round(categories.length / 2.0))" @click.native="addMerger(category.address)" style="cursor: pointer; margin-bottom: 8px;">
                             <div style="text-align: center;"><strong style="color: blue;">{{ category.name }}</strong></div>
                             <div style="text-align: center;">
                                 {{ category.description.substring(0, 200) }}<br>
