@@ -103,8 +103,10 @@
 				window.location = to;
             },
             addMerger: function(address) {
+                var self = this;
+                
                 page.cmd("mergerSiteAdd", [address], function() {
-                    this.getDownloaded();
+                    self.getDownloaded();
                 });
             }
 		}

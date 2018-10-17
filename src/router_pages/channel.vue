@@ -112,7 +112,7 @@
                 subscribed: false,
                 recent_videos: [],
                 videos: [],
-                currentTab: ""
+                currentTab: 0
 			};
 		},
 		beforeMount: function() {
@@ -127,7 +127,7 @@
             this.subscribed = false;
             this.recent_videos = [];
             this.videos = [];
-            this.currentTab = "";
+            this.currentTab = 0;
             
             this.auth_address = Router.currentParams["auth_address"];
             this.id = Router.currentParams["id"];

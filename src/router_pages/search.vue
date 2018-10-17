@@ -1,16 +1,14 @@
 <template>
 	<v-container fluid>
         <v-container style="max-width: 700px;">
-            <div class="title" style="text-align: center;">Subscriptions</div>
-			<component :is="videoListitem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
-            <!--<div v-for="video in videos" :key="video.video_id" style="margin-bottom: 8px;">
+            <div v-for="video in videos" :key="video.video_id" style="margin-bottom: 8px;">
                 <div class="subheading"><a :href="'./?/channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id" @click.prevent="goto('channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id)">{{ video.title }}</a></div>
                 <div class="body-1">
                     {{ video.description.substring(0, 150) }}
                 </div>
                 <small>Uploaded {{ getVideoDate(video) }} by {{ video.channel_name }}</small>
                 <v-divider :dark="content_dark" style="margin-top: 8px;"></v-divider>
-            </div>-->
+            </div>
         </v-container>
 	</v-container>
 </template>
@@ -18,16 +16,15 @@
 <script>
 	var Router = require("../libs/router.js");
     var searchDbQuery = require("../libs/search.js");
-	var moment = require("moment");
-	var video_list_item = require("../vue_components/video_list_item.vue");
+    var moment = require("moment");
 
 	module.exports = {
 		props: ["userInfo", "langTranslation"],
 		name: "home",
 		data: () => {
 			return {
-				videos: [],
-				videoListItem: video_list_item
+                searchQuery: "",
+                videos: []
 			};
 		},
 		beforeMount: function() {
@@ -35,23 +32,18 @@
 			/*this.$parent.$on("setLanguage", function(langTranslation) {
 				self.ZiteName = langTranslation["KxoId"];
 			});
-			this.ZiteName = this.langTranslation["KxoId"];*/
+            this.ZiteName = this.langTranslation["KxoId"];*/
+            
+            if (Router.currentParams["searchquery"]) {
+                this.searchQuery = Router.currentParams["searchquery"].replace(/%20/g, " ");
+            }
 
-			/*page.cmdp("dbQuery", ["SELECT * FROM channels LEFT JOIN json USING (json_id)"])
-				.then((results) => {
-					self.channels = results;
-                });*/
-            this.getVideos();
+            self.getVideos();
 		},
 		mounted: function() {
 			var self = this;
 
 			this.$emit("setcallback", "update", function(userInfo) {
-				/*page.cmdp("dbQuery", ["SELECT * FROM channels LEFT JOIN json USING (json_id)"])
-					.then((results) => {
-						self.channels = results;
-                    });*/
-                self.getVideos();
 			});
 		},
 		computed: {
@@ -63,30 +55,30 @@
 		methods: {
             getVideos: function() {
                 var self = this;
-                var subs = this.userInfo.keyvalue.subscriptions.split('|');
-                var subsWhereQuery = "";
 
-                for (var i = 0; i < subs.length; i++) {
-                    var auth_address = subs[i].split(',')[0];
-                    var channel_id = subs[i].split(',')[1];
-                    subsWhereQuery += " (ref_channel_id=" + channel_id + " AND videos_json.directory=\"data/users/" + auth_address + "\") ";
-                    if (i != subs.length - 1) {
-                        subsWhereQuery += " OR ";
-                    }
-                }
+                var searchSelects = [
+                    { col: "title", score: 5 },
+                    { col: "description", score: 4 },
+                    { col: "tags", score: 2 },
+                ];
 
-				var query = `SELECT videos.*, videos_json.directory, videos_json.cert_user_id, channels.name as channel_name FROM videos
-					LEFT JOIN json as videos_json USING (json_id)
-					LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
-					LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id
-					WHERE ${subsWhereQuery}
-					ORDER BY date_added DESC`;
+                var query = searchDbQuery(this, this.searchQuery || "", {
+                    orderByScore: true,
+                    id_col: "video_id",
+                    select: "videos.*, videos_json.directory, videos_json.cert_user_id, channels.name as channel_name",
+                    searchSelects: searchSelects,
+                    table: "videos",
+                    join: `LEFT JOIN json as videos_json USING (json_id)
+                            LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
+                            LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id`,
+                    afterOrderBy: "date_added DESC"
+                });
+
+                console.log(query);
 
                 page.cmdp("dbQuery", [query])
-                    .then((videos) => {
-                        console.log(videos);
-						self.videos = videos;
-						console.log(self.videos);
+                    .then((results) => {
+                        self.videos = results;
                     });
             },
             getVideoDate: function(video) {

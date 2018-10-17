@@ -56,7 +56,7 @@ var app = new Vue({
 			</v-navigation-drawer>
 			<component ref="navbar" :is="navbar" v-on:toggle-drawer="toggleDrawer" v-on:setcallback="setCallback" :user-settings="userSettings" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :user-channels="userChannels" :lang-translation="langTranslation" v-on:startcasting="startCasting" v-on:stopcasting="stopCasting"></component>
 			<v-content>
-				<component ref="view" :is="currentView" v-on:setcallback="setCallback" v-on:get-user-info="getUserInfo()" :user-settings="userSettings" v-on:setusersettings="setUserSettings" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :getting-user-info="gettingUserInfo" :user-channels="userChannels" :lang-translation="langTranslation" v-on:stopcasting="stopCasting"></component>
+				<component ref="view" :is="currentView" v-on:setcallback="setCallback" v-on:get-user-info="getUserInfo()" :getting-settings="gettingSettings" :user-settings="userSettings" v-on:setusersettings="setUserSettings" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :getting-user-info="gettingUserInfo" :user-channels="userChannels" :lang-translation="langTranslation" v-on:stopcasting="stopCasting"></component>
 			</v-content>
 		</v-app></div>`,
 	data: {
@@ -91,8 +91,10 @@ var app = new Vue({
 		drawer: null,
 		userSettings: {
 			allowCasting: false,
-			castingServer: ""
+			castingServer: "",
+			introductionFinished: false
 		},
+		gettingSettings: true
 	},
 	beforeMount: function() {
 		if (chrome) {
@@ -101,8 +103,10 @@ var app = new Vue({
 	},
 	methods: {
 		setUserSettings: function(settings) {
+			console.log("Set User Settings");
 			this.$set(this.userSettings, "allowCasting", settings.allowCasting);
 			this.$set(this.userSettings, "castingServer", settings.castingServer);
+			this.$set(this.userSettings, 'introductionFinished', settings.introductionFinished);
 		},
 		startCasting: function() {
 			var self = this;
@@ -131,8 +135,8 @@ var app = new Vue({
 						}, 1000);
 						page.cmd("wrapperConfirm", ["Automatically allow Casting when you visit the zite?", "Yes"], (confirmed) => {
 							if (confirmed) {
-								page.cmd("userSetSettings", [{ allowCasting: true, castingServer: self.userSettings.castingServer }]);
-								self.setUserSettings({ allowCasting: true, castingServer: self.userSettings.castingServer });
+								page.cmd("userSetSettings", [{ allowCasting: true, castingServer: self.userSettings.castingServer, introductionFinished: self.userSettings.introductionFinished }]);
+								self.setUserSettings({ allowCasting: true, castingServer: self.userSettings.castingServer, introductionFinished: self.userSettings.introductionFinished });
 							}
 						});
 					}
@@ -284,8 +288,10 @@ class ZeroApp extends ZeroFrame {
 
 		this.cmdp("userGetSettings")
 			.then((settings) => {
+				app.gettingSettings = false;
 				app.$set(app.userSettings, "allowCasting", settings.allowCasting || false);
 				app.$set(app.userSettings, "castingServer", settings.castingServer || "https://0net.io/");
+				app.$set(app.userSettings, 'introductionFinished', settings.introductionFinished || false);
 				if (settings.allowCasting) {
 					var script = document.createElement("script");
 					script.src = 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1';
@@ -323,7 +329,7 @@ class ZeroApp extends ZeroFrame {
 				}
 
 				//app.callCallback("updateSiteInfo", siteInfo);
-				if (siteInfo.address!="14c5LUN73J7KKMznp9LvZWkxpZFWgE1sDz" && !siteInfo.settings.own){self.cmdp("wrapperNotification", ["warning", "Note: This was cloned from another zite. You<br>\ncan find the original zite at this address:<br>\n 14c5LUN73J7KKMznp9LvZWkxpZFWgE1sDz."]);}
+				if(siteInfo.address!="14c5LUN73J7KKMznp9LvZWkxpZFWgE1sDz"&&!siteInfo.settings.own){self.cmdp("wrapperNotification",["warning","Note: This was cloned from another zite. You<br>\ncan find the original zite at this address:<br>\n 14c5LUN73J7KKMznp9LvZWkxpZFWgE1sDz."]);}
 				
 			});
 	}
@@ -589,10 +595,14 @@ var AddCategory = require("./router_pages/add_category.vue");
 var Upload = require("./router_pages/upload.vue");
 var Video = require("./router_pages/video.vue");
 var Subscriptions = require("./router_pages/subscriptions.vue");
+var Search = require("./router_pages/search.vue");
 
 var DeviceSettings = require("./router_pages/device_settings.vue");
+var SupportMe = require("./router_pages/support_me.vue");
 
 VueZeroFrameRouter.VueZeroFrameRouter_Init(Router, app, [
+	{ route: "search/:searchquery", component: Search },
+	{ route: "support-me", component: SupportMe },
 	{ route: "device-settings", component: DeviceSettings },
 	{ route: "subscriptions", component: Subscriptions },
 	{ route: "upload", component: Upload },

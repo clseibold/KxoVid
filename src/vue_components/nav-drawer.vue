@@ -90,6 +90,9 @@
         <v-list-tile :class="{ 'menu-item-active': routerIsActive('device-settings') }" href="./?/device-settings" @click.prevent="goto('device-settings')">
             <v-list-tile-title>Device Settings</v-list-tile-title>
         </v-list-tile>
+        <v-list-tile :class="{ 'menu-item-active': routerIsActive('support-me') }" href="./?/support-me" @click.prevent="goto('support-me')">
+            <v-list-tile-title>Support Me</v-list-tile-title>
+        </v-list-tile>
     </v-list>
 </template>
 

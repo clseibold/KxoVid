@@ -5,7 +5,7 @@
 		<v-spacer class="hidden-md-and-down">
 			<div style="width: 350px; margin: auto;">
 				<!--<v-spacer class="hidden-md-and-down"></v-spacer>-->
-				<v-text-field class="hidden-md-and-down" solo flat light hide-details placeholder="Search" v-model="search" prepend-icon="search"></v-text-field>
+				<v-text-field class="hidden-md-and-down" solo flat light hide-details placeholder="Search" v-model="search" :value="search" @keypress.enter="goto('search/' + search)" prepend-icon="search"></v-text-field>
 				<!--<v-spacer></v-spacer>-->
 			</div>
 		</v-spacer>
@@ -105,6 +105,10 @@
 				self.ZiteName = langTranslation["KxoVid"];
 			});
 			this.ZiteName = this.langTranslation["KxoVid"];
+
+			if (Router.currentParams["searchquery"]) {
+				this.search = Router.currentParams["searchquery"];
+			}
 		},
 		mounted: function() {
 			var self = this;

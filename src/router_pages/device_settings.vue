@@ -78,8 +78,8 @@
             save: function() {
                 /*this.$parent.$set(this.$parent.userSettings, "allowCasting", this.allowCasting);
                 this.$parent.$set(this.$parent.userSettings, "castingServer", this.castingServer);*/
-                this.$emit('setusersettings', { allowCasting: this.allowCasting, castingServer: this.castingServer });
-                page.cmdp("userSetSettings", [{ allowCasting: this.allowCasting, castingServer: this.castingServer }]);
+                this.$emit('setusersettings', { allowCasting: this.allowCasting, castingServer: this.castingServer, introductionFinished: this.userSettings.introductionFinished });
+                page.cmdp("userSetSettings", [{ allowCasting: this.allowCasting, castingServer: this.castingServer, introductionFinished: this.userSettings.introductionFinished }]);
                 page.cmdp("wrapperNotification", ["info", "You must refresh for the changes to take effect."]);
             }
 		}
