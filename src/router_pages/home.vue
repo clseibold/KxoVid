@@ -168,6 +168,7 @@
 				page.selectUser();
 				this.$emit("setusersettings", { allowCasting: this.userSettings.allowCasting, castingServer: this.userSettings.castingServer, introductionFinished: true });
 				page.cmdp("userSetSettings", [{ allowCasting: this.userSettings.allowCasting, castingServer: this.userSettings.castingServer, introductionFinished: true }]);
+				Router.navigate('categories');
 				return false;
 			},
 			gotoLink: function(to) {

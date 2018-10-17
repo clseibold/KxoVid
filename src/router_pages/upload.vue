@@ -175,9 +175,9 @@
                     });
 
                     return tableData;
-                }, function({ id, auth_address }) {
+                }, function({ date, auth_address }) {
                     self.loading = false;
-                    Router.navigate("channels/" + self.userInfo.auth_address + "/" + self.selectedChannelId + "/v/" + id);
+                    Router.navigate("channels/" + self.userInfo.auth_address + "/" + self.selectedChannelId + "/v/" + date);
                 });
             }
 		}
