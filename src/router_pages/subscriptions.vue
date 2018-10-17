@@ -2,7 +2,7 @@
 	<v-container fluid>
         <v-container style="max-width: 700px;">
             <div class="title" style="text-align: center;">Subscriptions</div>
-			<component :is="videoListitem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
+			<component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
             <!--<div v-for="video in videos" :key="video.video_id" style="margin-bottom: 8px;">
                 <div class="subheading"><a :href="'./?/channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id" @click.prevent="goto('channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id)">{{ video.title }}</a></div>
                 <div class="body-1">
