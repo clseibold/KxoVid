@@ -70,7 +70,9 @@
                     <div class="title" style="margin-bottom: 15px;">{{video.title}}</div>
                     <p class="body-1" v-if="video" v-html="descriptionMarkdown"></p>
                     <div>
-                        <v-btn small @click="pinVideo()">Pin &amp; Seed</v-btn>
+                        <v-btn small @click="pinVideo()" v-if="fileInfo.is_pinned == 0">Seed</v-btn>
+                        <v-btn small @click="unpinVideo()" v-else>Stop Seeding</v-btn>
+                        <span>{{ fileInfo.peer }} peers</span>
                     </div>
                 </v-flex>
                 <!-- Comments -->
@@ -132,7 +134,8 @@
                 commentLoading: false,
                 comments: [],
                 isCastPlaying: false,
-                castMedia: null
+                castMedia: null,
+                fileInfo: null
 			};
 		},
 		beforeMount: function() {
@@ -154,7 +157,7 @@
 
             this.determineSubscriptionStatus();
             this.getVideo();
-            self.getComments();
+            this.getComments();
 
 			this.$emit("setcallback", "update", function(userInfo) {
                 //self.userInfo = userInfo;
@@ -196,6 +199,15 @@
             }
 		},
 		methods: {
+            getFileInfo: function() {
+                var self = this;
+
+                page.cmdp("optionalFileInfo", [this.video.video_file])
+                    .then((fileInfo) => {
+                        console.log("FileInfo: ", fileInfo);
+                        self.fileInfo = fileInfo;
+                    });
+            },
             castVideo: function() {
                 var self = this;
 
@@ -269,8 +281,8 @@
 
                 page.cmdp("dbQuery", [query])
                     .then((results) => {
-                        console.log(results);
                         self.video = results[0];
+                        self.getFileInfo();
                     });
             },
             getComments: function() {
@@ -383,8 +395,20 @@
                 });
             },
             pinVideo: function() {
-                console.log(this.video.video_file);
-                page.cmdp("optionalFilePin", [this.video.video_file.replace('merged-KxoVid/' + this.video.site + '/', ''), this.video.site]);
+                var self = this;
+
+                page.cmdp("optionalFilePin", [this.video.video_file.replace('merged-KxoVid/' + this.video.site + '/', ''), this.video.site])
+                    .then(() => {
+                        self.getFileInfo();
+                    });
+            },
+            unpinVideo: function() {
+                var self = this;
+
+                page.cmdp("optionalFileUnpin", [this.video.video_file.replace('merged-KxoVid/' + this.video.site + '/', ''), this.video.site])
+                    .then(() => {
+                        self.getFileInfo();
+                    });
             }
 		}
 	}
