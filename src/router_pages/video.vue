@@ -69,6 +69,9 @@
                 <v-flex xs12 md3>
                     <div class="title" style="margin-bottom: 15px;">{{video.title}}</div>
                     <p class="body-1" v-if="video" v-html="descriptionMarkdown"></p>
+                    <div>
+                        <v-btn small @click="pinVideo()">Pin &amp; Seed</v-btn>
+                    </div>
                 </v-flex>
                 <!-- Comments -->
                 <v-flex xs12 md9 v-if="channel && video">
@@ -378,6 +381,10 @@
                     self.commentText = "";
                     self.getComments();
                 });
+            },
+            pinVideo: function() {
+                console.log(this.video.video_file);
+                page.cmdp("optionalFilePin", [this.video.video_file.replace('merged-KxoVid/' + this.video.site + '/', ''), this.video.site]);
             }
 		}
 	}
