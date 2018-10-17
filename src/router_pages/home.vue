@@ -30,25 +30,11 @@
 				<v-flex xs12 sm4 md5 v-if="userInfo"> <!-- Recent Videos from Subscriptions -->
 					<div class="title" style="text-align: center; margin-bottom: 8px;">Recent Videos from Subscriptions</div>
 					<div class="subheading" v-if="!userInfo.keyvalue.subscriptions || userInfo.keyvalue.subscriptions == ''">You currently have no subscriptions.</div>
-					<div v-for="video in recentSubVideos" :key="video.video_id" style="margin-bottom: 8px;">
-						<div class="subheading"><a :href="'./?/channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id" @click.prevent="goto('channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id)">{{ video.title }}</a></div>
-						<div class="body-1">
-							{{ video.description.substring(0, 150) }}
-						</div>
-						<small>Uploaded {{ getVideoDate(video) }} by {{ video.channel_name }}</small>
-						<v-divider :dark="content_dark" style="margin-top: 8px;"></v-divider>
-					</div>
+					<component :is="videoListItem" v-for="video in recentSubVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
 				</v-flex>
 				<v-flex xs12 sm4 md5> <!-- Recent Videos from Subscriptions -->
 					<div class="title" style="text-align: center; margin-bottom: 8px;">New Videos</div>
-					<div v-for="video in recentVideos" :key="video.video_id" style="margin-bottom: 8px;">
-						<div class="subheading"><a :href="'./?/channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id" @click.prevent="goto('channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id)">{{ video.title }}</a></div>
-						<div class="body-1">
-							{{ video.description.substring(0, 150) }}
-						</div>
-						<small>Uploaded {{ getVideoDate(video) }} by {{ video.channel_name }}</small>
-						<v-divider :dark="content_dark" style="margin-top: 8px;"></v-divider>
-					</div>
+					<component :is="videoListItem" v-for="video in recentVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
 				</v-flex>
 				<v-flex xs12 sm4 md2> <!-- Recent Videos from Subscriptions -->
 					<div class="title" style="text-align: center; margin-bottom: 8px;">New Channels</div>
@@ -66,6 +52,7 @@
 	var Router = require("../libs/router.js");
 	var searchDbQuery = require("../libs/search.js");
 	var moment = require("moment");
+	var video_list_item = require("../vue_components/video_list_item.vue");
 
 	module.exports = {
 		props: ["gettingSettings", "userSettings", "userInfo", "langTranslation"],
@@ -74,7 +61,8 @@
 			return {
 				recentSubVideos: [],
 				recentVideos: [],
-				recentChannels: []
+				recentChannels: [],
+				videoListItem: video_list_item
 			};
 		},
 		beforeMount: function() {

@@ -57,14 +57,7 @@
                     <v-layout row wrap fill-height>
                         <v-flex xs12 sm8>
                             <div class="title" style="margin-bottom: 8px;">Recent Videos</div>
-                            <div v-for="video in recent_videos" :key="video.video_id" style="margin-bottom: 8px;">
-                                <div class="subheading"><a :href="'./?/channel/' + auth_address + '/' + id + '/v/' + video.video_id" @click.prevent="goto('channel/' + auth_address + '/' + id + '/v/' + video.video_id)">{{ video.title }}</a></div>
-                                <div class="body-1">
-                                    {{ video.description.substring(0, 150) }}
-                                </div>
-                                <small>Uploaded {{ getVideoDate(video) }}</small>
-                                <v-divider :dark="content_dark" style="margin-top: 8px;"></v-divider>
-                            </div>
+                            <component :is="videoListItem" v-for="video in recent_videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false"></component>
                         </v-flex>
                         <v-flex xs12 sm4>
                             <div class="title" style="text-align: center; margin-bottom: 8px;">About</div>
@@ -75,14 +68,7 @@
                 <!-- Videos Tab -->
                 <v-tab-item key="videos">
                     <v-container style="max-width: 700px;">
-                        <div v-for="video in videos" :key="video.video_id" style="margin-bottom: 8px;">
-                            <div class="subheading"><a :href="'./?/channel/' + auth_address + '/' + id + '/v/' + video.video_id" @click.prevent="goto('channel/' + auth_address + '/' + id + '/v/' + video.video_id)">{{ video.title }}</a></div>
-                            <div class="body-1">
-                                {{ video.description.substring(0, 150) }}
-                            </div>
-                            <small>Uploaded {{ getVideoDate(video) }}</small>
-                            <v-divider :dark="content_dark" style="margin-top: 8px;"></v-divider>
-                        </div>
+                        <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false"></component>
                     </v-container>
                 </v-tab-item>
             </v-tabs-items>
@@ -100,6 +86,7 @@
 	var Router = require("../libs/router.js");
     var searchDbQuery = require("../libs/search.js");
     var moment = require("moment");
+    var video_list_item = require("../vue_components/video_list_item.vue");
 
 	module.exports = {
 		props: ["userInfo", "langTranslation"],
@@ -112,7 +99,8 @@
                 subscribed: false,
                 recent_videos: [],
                 videos: [],
-                currentTab: 0
+                currentTab: 0,
+                videoListItem: video_list_item
 			};
 		},
 		beforeMount: function() {
