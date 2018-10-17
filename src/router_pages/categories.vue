@@ -1,7 +1,7 @@
 <template>
 	<v-container fluid>
         <v-container style="max-width: 700px;">
-            <div class="title" style="text-align: center;">Categories <a href="./?/categories/add" @click.prevent="goto('categories/add')" style="font-size: .5em;">Add Category</a></div>
+            <div class="title" style="text-align: center;">Categories <a href="./?/categories/add" @click.prevent="goto('categories/add')" style="font-size: .5em;">Add Category to Index</a></div>
             <v-container grid-list-xl>
                 <v-layout row wrap>
                     <v-flex xs12 sm6>
