@@ -23,6 +23,7 @@
 			<v-divider style="margin-top: 8px; margin-bottom: 12px;"></v-divider>
 			
 			<v-btn color="primary" @click="login()">Sign In</v-btn>
+			<v-btn @click="register()">Register a KxoId</v-btn>
 			<a href="./?/categories" @click.prevent="gotoCategories()">View Categories Index</a>
 		</v-container>
 		<v-container v-else grid-list-xl>
@@ -32,11 +33,11 @@
 					<div class="subheading" v-if="!userInfo.keyvalue.subscriptions || userInfo.keyvalue.subscriptions == ''">You currently have no subscriptions.</div>
 					<component :is="videoListItem" v-for="video in recentSubVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
 				</v-flex>
-				<v-flex xs12 sm4 md5> <!-- Recent Videos from Subscriptions -->
+				<v-flex xs12 sm4 md5> <!-- New Videos -->
 					<div class="title" style="text-align: center; margin-bottom: 8px;">New Videos</div>
 					<component :is="videoListItem" v-for="video in recentVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
 				</v-flex>
-				<v-flex xs12 sm4 md2> <!-- Recent Videos from Subscriptions -->
+				<v-flex xs12 sm4 md2> <!-- New Channels -->
 					<div class="title" style="text-align: center; margin-bottom: 8px;">New Channels</div>
 					<div v-for="channel in recentChannels" style="margin-bottom: 8px;">
 						<div class="subheading" style="text-align: center;"><a :href="'./?/channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id" @click.prevent="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">{{ channel.name }}</a></div>
@@ -96,6 +97,8 @@
 		methods: {
 			getRecentSubVideos: function() {
 				var self = this;
+				if (this.userInfo == null || this.userInfo.keyvalue == null || this.userInfo.keyvalue.subscriptions == null || this.userInfo.keyvalue.subscriptions == "")
+					return;
 				var subs = this.userInfo.keyvalue.subscriptions.split('|');
                 var subsWhereQuery = "";
 
@@ -179,6 +182,9 @@
 				this.$emit("setusersettings", { allowCasting: this.userSettings.allowCasting, castingServer: this.userSettings.castingServer, introductionFinished: true });
 				page.cmdp("userSetSettings", [{ allowCasting: this.userSettings.allowCasting, castingServer: this.userSettings.castingServer, introductionFinished: true }]);
 				Router.navigate('categories');
+			},
+			register: function() {
+				page.cmdp("wrapperOpenWindow", ["/1GTVetvjTEriCMzKzWSP9FahYoMPy6BG1P/?/create-id"]);
 			}
 		}
 	}
