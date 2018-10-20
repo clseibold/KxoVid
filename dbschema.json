@@ -4,7 +4,7 @@
     "version": 3,
     "maps": {
         "1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F/data/users/.+/data.json": {
-            "to_table": ["category_hubs", "channels", "moderated_comments"],
+            "to_table": ["category_hubs", "channels"],
             "to_keyvalue": ["subscriptions"]
         },
         ".+/data/users/.+/content.json": {
@@ -12,7 +12,7 @@
             "file_name": "data.json"
         },
         ".+/data/users/.+/data.json": {
-            "to_table": ["videos", "comments"]
+            "to_table": ["videos", "comments", "moderated_comments"]
         }
     },
     "tables": {
@@ -86,10 +86,11 @@
                 ["id", "INTEGER"],
                 ["ref_comment_auth_address", "INTEGER"],
                 ["ref_comment_id", "INTEGER"],
-                ["json_id", "INTEGER REFERNCES json(json_id)"]
+                ["date_added", "INTEGER"],
+                ["json_id", "INTEGER REFERENCES json(json_id)"]
             ],
             "indexes": ["CREATE UNIQUE INDEX moderated_comments_index ON moderated_comments(json_id, id)"],
-            "schema_changed": 3
+            "schema_changed": 4
         }
     }
 }

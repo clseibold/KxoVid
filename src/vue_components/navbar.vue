@@ -5,7 +5,7 @@
 		<v-spacer class="hidden-md-and-down">
 			<div style="width: 350px; margin: auto;">
 				<!--<v-spacer class="hidden-md-and-down"></v-spacer>-->
-				<v-text-field class="hidden-md-and-down" solo flat light hide-details placeholder="Search" v-model="search" :value="search" @keypress.enter="goto('search/' + search)" prepend-icon="search"></v-text-field>
+				<v-text-field :dark="theme == 'dark'" class="hidden-md-and-down" solo flat light hide-details placeholder="Search" v-model="search" :value="search" @keypress.enter="goto('search/' + search)" prepend-icon="search"></v-text-field>
 				<!--<v-spacer></v-spacer>-->
 			</div>
 		</v-spacer>
@@ -91,7 +91,7 @@
 	var Router = require("../libs/router.js");
 
 	module.exports = {
-		props: ["castingAllowed", "isCasting", "castSession", "userInfo", "userChannels", "langTranslation"],
+		props: ["theme", "castingAllowed", "isCasting", "castSession", "userInfo", "userChannels", "langTranslation"],
 		name: "navbar",
 		data: () => {
 			return {

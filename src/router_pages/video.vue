@@ -104,7 +104,13 @@
                                 <v-flex xs10 sm11>
                                     <a href="#" @click.prevent="" style="font-weight: bold;">{{ comment.cert_user_id }}</a>
                                     <div class="body-2">{{ comment.body }}</div>
-                                    <small>{{ getDateFromNow(comment.date_added) }} {{ comment.date_updated ? "(edited)" : "" }}</small>
+                                    <small>
+                                        {{ getDateFromNow(comment.date_added) }} {{ comment.date_updated ? "(edited)" : "" }}
+                                        <span v-if="isOwner"> | 
+                                            <a href="#" @click.prevent="addAsModerated(comment)" v-if="comment.moderated_id == null">Moderate (Hide)</a>
+                                            <a href="#" @click.prevent="removeFromModerated(comment)" v-if="comment.moderated_id != null">DeModerate (Show)</a>
+                                        </span>
+                                    </small>
                                 </v-flex>
                             </v-layout>
                         </div>
@@ -127,7 +133,7 @@
     var moment = require("moment");
 
 	module.exports = {
-		props: ["userSettings", "castingAllowed", "isCasting", "castSession", "userInfo", "langTranslation"],
+		props: ["theme", "userSettings", "castingAllowed", "isCasting", "castSession", "userInfo", "langTranslation"],
 		name: "video",
 		data: () => {
 			return {
@@ -143,7 +149,7 @@
                 isCastPlaying: false,
                 castMedia: null,
                 fileInfo: null,
-                channel_moderation: false
+                channel_moderation: true
 			};
 		},
 		beforeMount: function() {
@@ -195,8 +201,8 @@
             content_dark: function() {
                 if (!this.channel) return false;
 
-                if (this.channel.background_color == "white") return false;
-                else if (this.channel.background_color == "dark") return true;
+                if (this.channel.background_color == "white" && this.theme != "dark") return false;
+                else if (this.channel.background_color == "dark" || this.theme == "dark") return true;
             },
             getBackground: function() {
                 switch (this.channel.background_color) {
@@ -204,6 +210,9 @@
                     case "dark": return "grey darken-4 grey--text text--lighten-5";
                     default: return "";
                 }
+            },
+            isOwner: function() {
+                return this.userInfo.auth_address == this.channel.directory.replace('data/users/', '');
             }
 		},
 		methods: {
@@ -296,11 +305,12 @@
             getComments: function(mod = this.channel_moderation) {
                 var self = this;
                 var query = `
-                    SELECT * FROM comments
+                    SELECT comments.*, json.*, moderated_comments.id as moderated_id FROM comments
                         LEFT JOIN json USING (json_id)
-                        ${ mod ? "LEFT JOIN moderated_comments ON moderated_comments.ref_comment_id=comments.comment_id AND moderated_comments.ref_comment_auth_address=REPLACE(json.directory, 'data/users/', '')" : "" }
+                        LEFT JOIN moderated_comments ON moderated_comments.ref_comment_id=comments.comment_id AND moderated_comments.ref_comment_auth_address=REPLACE(json.directory, 'data/users/', '')
                     WHERE ref_video_auth_address="${ this.auth_address }"
                     AND ref_channel_id=${ this.id } AND ref_video_id=${ this.video_id }
+                    ${ mod ? 'AND moderated_comments.id IS NULL' : '' }
                     ORDER BY date_added DESC
                     `;
 
@@ -424,6 +434,49 @@
                     .then(() => {
                         self.getFileInfo();
                     });
+            },
+            addAsModerated: function(comment) {
+                var self = this;
+
+                var comment_auth_address = comment.directory.replace('data/users/', '');
+                var comment_id = comment.comment_id;
+
+                page.editTableData(this.video.site, "moderated_comments", function(date, data, table_data) {
+                    table_data.push({
+                        "id": date,
+                        "ref_comment_auth_address": comment_auth_address,
+                        "ref_comment_id": comment_id,
+                        "date_added": date
+                    });
+
+                    return table_data;
+                }, function() {
+                    self.getComments();
+                });
+            },
+            removeFromModerated: function(comment) {
+                var self = this;
+
+                var comment_auth_address = comment.directory.replace('data/users/', '');
+                var comment_id = comment.comment_id;
+
+                page.editTableData(this.video.site, "moderated_comments", function(date, data, table_data) {
+                    var changed = false;
+                    for (var i = 0; i < table_data.length; i++) {
+                        var obj = table_data[i];
+
+                        if (obj.ref_comment_auth_address == comment_auth_address && obj.ref_comment_id == comment.comment_id) {
+                            changed = true;
+                            table_data.splice(i, 1);
+                            break;
+                        }
+                    }
+
+                    if (!changed) return null;
+                    return table_data;
+                }, function() {
+                    self.getComments();
+                })
             }
 		}
 	}
