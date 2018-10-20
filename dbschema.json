@@ -4,7 +4,7 @@
     "version": 3,
     "maps": {
         "1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F/data/users/.+/data.json": {
-            "to_table": ["category_hubs", "channels"],
+            "to_table": ["category_hubs", "channels", "channel_playlists"],
             "to_keyvalue": ["subscriptions"]
         },
         ".+/data/users/.+/content.json": {
@@ -36,6 +36,7 @@
                 ["tags", "TEXT"],
                 ["original", "BOOLEAN"],
                 ["video_file", "TEXT"],
+                ["channel_playlists", "TEXT"],
                 ["date_added", "INTEGER"],
                 ["json_id", "INTEGER REFERENCES json (json_id)"]
             ],
@@ -80,6 +81,17 @@
             ],
             "indexes": ["CREATE UNIQUE INDEX channel_index ON channels(json_id, channel_id)", "CREATE INDEX channel_id_name ON channels(channel_id, name)"],
             "schema_changed": 8
+        },
+        "channel_playlists": {
+            "cols": [
+                ["playlist_id", "INTEGER"],
+                ["ref_channel_id", "INTEGER"],
+                ["name", "TEXT"],
+                ["date_added", "INTEGER"],
+                ["json_id", "INTEGER REFERENCES json(json_id)"]
+            ],
+            "indexes": ["CREATE UNIQUE INDEX channel_playlists_index ON channel_playlists(json_id, playlist_id)"],
+            "schema_changed": 3
         },
         "moderated_comments": {
             "cols": [
