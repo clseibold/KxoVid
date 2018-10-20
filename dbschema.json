@@ -4,7 +4,7 @@
     "version": 3,
     "maps": {
         "1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F/data/users/.+/data.json": {
-            "to_table": ["category_hubs", "channels"],
+            "to_table": ["category_hubs", "channels", "moderated_comments"],
             "to_keyvalue": ["subscriptions"]
         },
         ".+/data/users/.+/content.json": {
@@ -80,6 +80,16 @@
             ],
             "indexes": ["CREATE UNIQUE INDEX channel_index ON channels(json_id, channel_id)", "CREATE INDEX channel_id_name ON channels(channel_id, name)"],
             "schema_changed": 8
+        },
+        "moderated_comments": {
+            "cols": [
+                ["id", "INTEGER"],
+                ["ref_comment_auth_address", "INTEGER"],
+                ["ref_comment_id", "INTEGER"],
+                ["json_id", "INTEGER REFERNCES json(json_id)"]
+            ],
+            "indexes": ["CREATE UNIQUE INDEX moderated_comments_index ON moderated_comments(json_id, id)"],
+            "schema_changed": 3
         }
     }
 }

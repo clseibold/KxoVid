@@ -50,9 +50,9 @@ var NavDrawer = require("./vue_components/nav-drawer.vue");
 
 var app = new Vue({
 	el: "#app",
-	template: `<div><v-app>
-			<v-navigation-drawer app clipped fixed light width="225" hide-overlay v-model="drawer" style="padding-bottom: 50px;">
-				<component ref="nav_drawer" :is="nav_drawer" v-model="drawer" v-on:setcallback="setCallback" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :user-channels="userChannels" :lang-translation="langTranslation"></component>
+	template: `<div><v-app :dark="theme == 'dark'">
+			<v-navigation-drawer app clipped fixed light width="225" hide-overlay v-model="drawer" :dark="theme == 'dark'" style="padding-bottom: 50px;">
+				<component ref="nav_drawer" :is="nav_drawer" v-model="drawer" v-on:setcallback="setCallback" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :user-channels="userChannels" :lang-translation="langTranslation" :theme="theme"></component>
 			</v-navigation-drawer>
 			<component ref="navbar" :is="navbar" v-on:toggle-drawer="toggleDrawer" v-on:setcallback="setCallback" :user-settings="userSettings" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :user-channels="userChannels" :lang-translation="langTranslation" v-on:startcasting="startCasting" v-on:stopcasting="stopCasting"></component>
 			<v-content>
@@ -94,6 +94,7 @@ var app = new Vue({
 			castingServer: "",
 			introductionFinished: false
 		},
+		theme: "",
 		gettingSettings: true
 	},
 	beforeMount: function() {
@@ -249,6 +250,7 @@ var app = new Vue({
 			this.$set(this.siteInfo, 'settings', siteInfo.settings);
 			this.$set(this.siteInfo, 'cert_user_id', siteInfo.cert_user_id);
 			this.$set(this.siteInfo, 'auth_address', siteInfo.auth_address);
+
 			this.getUserInfo();
 
 			console.log(this.siteInfo.cert_user_id);
@@ -302,9 +304,11 @@ class ZeroApp extends ZeroFrame {
 
 		this.cmdp("serverInfo", {})
 			.then((serverInfo) => {
-				console.log(serverInfo);
+				console.log("Server Info: ", serverInfo);
 				self.serverInfo = serverInfo;
 				app.serverInfo = serverInfo;
+
+				app.theme = serverInfo.user_settings.theme || "light";
 				return this.cmdp("fileGet", { "inner_path": "languages/" + self.serverInfo.language + ".json", "required": false })
 			}).then((data) => {
 				data = JSON.parse(data);
@@ -315,7 +319,7 @@ class ZeroApp extends ZeroFrame {
 				}
 				return this.cmdp("siteInfo", {});
 			}).then((siteInfo) => {
-				console.log(siteInfo);
+				console.log("Site Info: ", siteInfo);
 				this.siteInfo = siteInfo;
 				app.setSiteInfo(siteInfo);
 				//app.siteInfo = siteInfo;

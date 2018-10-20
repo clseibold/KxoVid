@@ -78,7 +78,14 @@
                 <!-- Comments -->
                 <v-flex xs12 md9 v-if="channel && video">
                     <v-divider :dark="content_dark" style="margin-bottom: 8px;"></v-divider>
-                    <div class="subheading">{{ comments ? comments.length : "" }} Comments</div>
+                    <div class="subheading">
+                        {{ comments ? comments.length : "" }} Comments
+
+                        <v-switch @click="getComments(!channel_moderation)"
+                        label="Hide Channel Moderated Content"
+                        v-model="channel_moderation"
+                        style="float: right; display: inline;"></v-switch>
+                    </div>
                     <!--<v-divider :dark="content_dark" style="margin-top: 8px; margin-bottom: 8px;"></v-divider>-->
                     <div v-if="isLoggedIn">
                         <v-text-field :dark="content_dark" :loading="commentLoading" v-model="commentText" placeholder="Add a comment ..." multi-line rows="1" auto-grow></v-text-field>
@@ -135,7 +142,8 @@
                 comments: [],
                 isCastPlaying: false,
                 castMedia: null,
-                fileInfo: null
+                fileInfo: null,
+                channel_moderation: false
 			};
 		},
 		beforeMount: function() {
@@ -285,9 +293,16 @@
                         self.getFileInfo();
                     });
             },
-            getComments: function() {
+            getComments: function(mod = this.channel_moderation) {
                 var self = this;
-                var query = "SELECT * FROM comments LEFT JOIN json USING (json_id) WHERE ref_video_auth_address=\"" + this.auth_address + "\" AND ref_channel_id=" + this.id + " AND ref_video_id=" + this.video_id + " ORDER BY date_added DESC";
+                var query = `
+                    SELECT * FROM comments
+                        LEFT JOIN json USING (json_id)
+                        ${ mod ? "LEFT JOIN moderated_comments ON moderated_comments.ref_comment_id=comments.comment_id AND moderated_comments.ref_comment_auth_address=REPLACE(json.directory, 'data/users/', '')" : "" }
+                    WHERE ref_video_auth_address="${ this.auth_address }"
+                    AND ref_channel_id=${ this.id } AND ref_video_id=${ this.video_id }
+                    ORDER BY date_added DESC
+                    `;
 
                 console.log(query);
 

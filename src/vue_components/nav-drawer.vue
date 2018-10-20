@@ -1,5 +1,5 @@
 <template>
-    <v-list dense>
+    <v-list :dark="dark == 'dark'" dense>
         <v-list-tile :class="{ 'menu-item-active': routerIsActive('') }" href="./?/" @click.prevent="goto('')">
             <v-list-tile-action>
                 <v-icon>home</v-icon>
@@ -100,6 +100,9 @@
     .menu-item-active {
         background-color: lightgray;
     }
+    .theme--dark .menu-item-active {
+        background-color: #505050;
+    }
 </style>
 
 
@@ -107,7 +110,7 @@
 	var Router = require("../libs/router.js");
 
 	module.exports = {
-		props: ["userInfo", "userChannels", "langTranslation"],
+		props: ["theme", "userInfo", "userChannels", "langTranslation"],
 		name: "nav-drawer",
 		data: () => {
 			return {
