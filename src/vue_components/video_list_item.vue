@@ -4,7 +4,7 @@
         <div class="body-1">
             {{ video.description.substring(0, 150) }}
         </div>
-        <small>Uploaded {{ getVideoDate }} <span v-if="showChannel">by <a :href="'./?/channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id" @click.prevent="goto('channel/' + video.directory.replace('data/users/', '')  + '/' + video.ref_channel_id)">{{ video.channel_name }}</a></span></small>
+        <small>Uploaded {{ getVideoDate }} <span v-if="showChannel">by <a :href="'./?/channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id" @click.prevent="goto('channel/' + video.directory.replace('data/users/', '')  + '/' + video.ref_channel_id)">{{ video.channel_name }} ({{ video.cert_user_id }})</a></span></small>
         <v-divider style="margin-top: 8px;"></v-divider>
     </div>
 </template>
