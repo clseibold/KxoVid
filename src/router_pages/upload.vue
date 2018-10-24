@@ -11,8 +11,9 @@
             <v-select v-model="tags" label="Tags (enter to add tag)" chips tags></v-select>
             <v-checkbox v-model="original" label="Original?"></v-checkbox>
 
-            <input class="file-input" ref="fileInput" type="file" accept="video/mp4,video/webm,video/ogg" id="fileUpload" style="display: none;" @change="uploadVideo()">
-            <v-btn :loading="loading" ripple color="primary" @click="pickVideo()">Pick File and Upload</v-btn>
+
+            <input class="file-input" ref="fileInput" type="file" accept="video/mp4,video/webm,video/ogg" id="fileUpload"><br>
+            <v-btn :loading="loading" ripple color="primary" @click="uploadVideo()">Upload</v-btn>
         </v-container>
 	</v-container>
 </template>
@@ -108,10 +109,6 @@
 				console.log(to);
 				window.location = to;
             },
-            pickVideo: function() {
-                this.loading = true;
-                this.$refs.fileInput.click();
-            },
             uploadVideo: function() {
                 var self = this;
 
@@ -139,19 +136,20 @@
                     }
                     
                     accepted = true;
+                    self.loading = true;
 
-					let reader = new FileReader();
-					reader.onload = function(event) {
+					//let reader = new FileReader();
+					/*reader.onload = function(event) {
 							let f_data = btoa(event.target.result);
 							let file_type = fY.type;
-
+*/
 							page.uploadBigFile(self.selectedCategoryAddress, fY, (output_url) => {
 									console.log("Uploaded video!");
 									fileUpload.value = null;
 									self.saveVideo(output_url);
 								});
-						};
-					reader.readAsBinaryString(fY);
+						//};
+					//reader.readAsBinaryString(fY);
                 }
                 
                 if (!accepted) {
@@ -177,7 +175,7 @@
                     return tableData;
                 }, function({ date, auth_address }) {
                     self.loading = false;
-                    Router.navigate("channels/" + self.userInfo.auth_address + "/" + self.selectedChannelId + "/v/" + date);
+                    Router.navigate("channel/" + self.userInfo.auth_address + "/" + self.selectedChannelId + "/v/" + date);
                 });
             }
 		}

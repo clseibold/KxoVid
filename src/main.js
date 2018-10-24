@@ -122,7 +122,7 @@ var app = new Vue({
 				});
 			}
 
-			if (!chrome.cast) {
+			if (!chrome || !chrome.cast) {
 				page.cmd("wrapperConfirm", ["Download file from internet to allow Casting?", "Yes"], (confirmed) => {
 					if (confirmed) {
 						var script = document.createElement("script");
@@ -256,6 +256,7 @@ var app = new Vue({
 			console.log(this.siteInfo.cert_user_id);
 		},
 		initializeCasting: function(onSuccess = null) {
+			if (!chrome || !chrome.cast) return;
 			var self = this;
 
 			console.log("Initializing casting");
@@ -292,7 +293,7 @@ class ZeroApp extends ZeroFrame {
 			.then((settings) => {
 				app.gettingSettings = false;
 				app.$set(app.userSettings, "allowCasting", settings.allowCasting || false);
-				app.$set(app.userSettings, "castingServer", settings.castingServer || "https://0net.io/");
+				app.$set(app.userSettings, "castingServer", settings.castingServer || "https://core.0net.io/");
 				app.$set(app.userSettings, 'introductionFinished', settings.introductionFinished || false);
 				if (settings.allowCasting) {
 					var script = document.createElement("script");
@@ -451,7 +452,7 @@ class ZeroApp extends ZeroFrame {
 					page.cmd("optionalFilePin", { "inner_path": f_path });
 					
                     page.cmd("wrapperNotification", ["info", "Upload finished!"]);
-                    if (f !== null && typeof f === "function") f(f_path.replace(/%/g, ""));
+                    if (f !== null && typeof f === "function") f(f_path.replace(/%/g, "").replace(/[^a-zA-Z0-9\/\.\-_+\\]/g, ''));
                 });
                 req.withCredentials = true;
                 req.open("POST", init_res.url);
@@ -598,21 +599,27 @@ var Categories = require("./router_pages/categories.vue");
 var AddCategory = require("./router_pages/add_category.vue");
 var Upload = require("./router_pages/upload.vue");
 var Video = require("./router_pages/video.vue");
+var VideoEdit = require("./router_pages/video_edit.vue");
 var Subscriptions = require("./router_pages/subscriptions.vue");
 var Search = require("./router_pages/search.vue");
+
+var Category = require("./router_pages/category_channel.vue");
 
 var DeviceSettings = require("./router_pages/device_settings.vue");
 var SupportMe = require("./router_pages/support_me.vue");
 
 VueZeroFrameRouter.VueZeroFrameRouter_Init(Router, app, [
 	{ route: "search/:searchquery", component: Search },
+	{ route: "search", component: Search },
 	{ route: "support-me", component: SupportMe },
 	{ route: "device-settings", component: DeviceSettings },
 	{ route: "subscriptions", component: Subscriptions },
 	{ route: "upload", component: Upload },
+	{ route: "category/:address", component: Category },
 	{ route: "categories/add", component: AddCategory },
 	{ route: "categories", component: Categories },
 	{ route: "channel/create", component: CreateChannel },
+	{ route: "channel/settings/:id/v/:videoid", component: VideoEdit },
 	{ route: "channel/settings/:id", component: ChannelSettings },
 	{ route: "channel/:auth_address/:id/v/:videoid", component: Video },
 	{ route: "channel/:auth_address/:id", component: Channel },

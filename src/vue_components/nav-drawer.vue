@@ -71,6 +71,14 @@
                         <v-list-tile-title>{{ channel.name }}</v-list-tile-title>
                     </v-list-tile-content>
                 </v-list-tile>
+                <v-list-tile v-for="category in category_subscriptions" :key="category.directory.replace('data/users/', '') + '-' + category.hub_id" :href="'./?/category/' + category.address" @click.prevent="goto('category/' + category.address)">
+                    <v-list-tile-avatar>
+                        <svg width="40px" height="40px" v-bind:data-jdenticon-value="category.address + '-cat'"></svg>
+                    </v-list-tile-avatar>
+                    <v-list-tile-content>
+                        <v-list-tile-title>{{ category.name }}</v-list-tile-title>
+                    </v-list-tile-content>
+                </v-list-tile>
             </div>
             <div v-if="userChannels && userChannels.length > 0">
                 <v-divider style="margin-top: 12px;"></v-divider>
@@ -114,7 +122,8 @@
 		name: "nav-drawer",
 		data: () => {
 			return {
-                subscriptions: []
+                subscriptions: [],
+                category_subscriptions: []
 			};
 		},
 		beforeMount: function() {
@@ -160,7 +169,9 @@
 
                 var subs = userInfo.keyvalue.subscriptions.split("|");
                 var query = "SELECT * FROM channels LEFT JOIN json USING (json_id) WHERE ";
+                var query2 = "SELECT * FROM category_hubs LEFT JOIN json USING (json_id) WHERE ";
                 var added = 0;
+                var added2 = 0;
                 for (var i = 0; i < subs.length; i++) {
                     if (subs[i] == "" || subs[i] == "undefined") continue;
 
@@ -168,9 +179,15 @@
                     var auth_address = parts[0];
                     var channel_id = parts[1];
 
-                    if (added != 0) query += " OR ";
-                    query += "(directory=\"data/users/" + auth_address + "\" AND channel_id=" + channel_id + ")";
-                    ++added;
+                    if (channel_id == "cat") { // For category subscriptions
+                        if (added2 != 0) query2 += " OR ";
+                        query2 += "address=\"" + auth_address + "\"";
+                        ++added2;
+                    } else {
+                        if (added != 0) query += " OR ";
+                        query += "(directory=\"data/users/" + auth_address + "\" AND channel_id=" + channel_id + ")";
+                        ++added;
+                    }
                 }
 
                 console.log(query);
@@ -178,8 +195,14 @@
                 var self = this;
                 page.cmdp("dbQuery", [query])
                     .then((results) => {
-                        console.log(results);
                         self.subscriptions = results;
+                    });
+
+                // For category subscriptions
+                page.cmdp("dbQuery", [query2])
+                    .then((results) => {
+                        console.log(results);
+                        self.category_subscriptions = results;
                     });
             },
 			goto: function(to) {

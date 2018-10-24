@@ -32,7 +32,7 @@
                     </v-tooltip>
                     <div v-if="isLoggedIn && userInfo.auth_address == auth_address">
                         <v-tooltip bottom>
-                            <v-btn slot="activator" icon @click="">
+                            <v-btn slot="activator" icon @click="goto('channel/settings/' + channel.channel_id + '/v/' + video.video_id)">
                                 <v-icon>edit</v-icon>
                             </v-btn>
                             <span>Edit Video</span>
@@ -70,6 +70,10 @@
                     <div class="title" style="margin-bottom: 15px;">{{video.title}}</div>
                     <p class="body-1" v-if="video" v-html="descriptionMarkdown"></p>
                     <div>
+                        <v-chip :class="{ 'grey darken-3 white--text' : content_dark }" v-if="video.original">Original</v-chip>
+                    </div>
+                    <v-divider small :dark="content_dark" style="margin-top: 8px; margin-bottom: 8px;"></v-divider>
+                    <div>
                         <v-btn small @click="pinVideo()" v-if="fileInfo.is_pinned == 0">Seed</v-btn>
                         <v-btn small @click="unpinVideo()" v-else>Stop Seeding</v-btn>
                         <span>{{ fileInfo.peer }} peers</span>
@@ -81,7 +85,7 @@
                     <div class="subheading">
                         {{ comments ? comments.length : "" }} Comments
 
-                        <v-switch @click="getComments(!channel_moderation)"
+                        <v-switch :dark="content_dark" @click="getComments(!channel_moderation)"
                         label="Hide Channel Moderated Content"
                         v-model="channel_moderation"
                         style="float: right; display: inline;"></v-switch>
@@ -116,6 +120,10 @@
                         </div>
                     </div>
                 </v-flex>
+                <!-- Related Videos -->
+                <v-flex xs12 md3 v-if="channel && video">
+                    <component :is="videoListItem" v-for="video in relatedVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
+                </v-flex>
             </v-layout>
 		</v-container>
 	</v-container>
@@ -131,6 +139,7 @@
 	var Router = require("../libs/router.js");
     var searchDbQuery = require("../libs/search.js");
     var moment = require("moment");
+    var video_list_item = require("../vue_components/video_list_item.vue");
 
 	module.exports = {
 		props: ["theme", "userSettings", "castingAllowed", "isCasting", "castSession", "userInfo", "langTranslation"],
@@ -149,7 +158,9 @@
                 isCastPlaying: false,
                 castMedia: null,
                 fileInfo: null,
-                channel_moderation: true
+                channel_moderation: true,
+                relatedVideos: [],
+                videoListItem: video_list_item
 			};
 		},
 		beforeMount: function() {
@@ -170,13 +181,13 @@
                 });
 
             this.determineSubscriptionStatus();
-            this.getVideo();
+            this.getVideo(true);
             this.getComments();
 
 			this.$emit("setcallback", "update", function(userInfo) {
                 //self.userInfo = userInfo;
                 self.determineSubscriptionStatus();
-                self.getVideo();
+                self.getVideo(false);
                 self.getComments();
 			});
 		},
@@ -190,7 +201,7 @@
             },
             descriptionMarkdown: function() {
                 //return md.render(this.video.description);
-                return this.video.description.replace(/\n/g, "<br>");
+                return this.video.description.substring(0, 650).replace(/\n/g, "<br>");
             },
             toolbar_dark: function() {
                 if (!this.channel) return true;
@@ -291,7 +302,7 @@
                     this.subscribed = false;
                 }
             },
-            getVideo: function() {
+            getVideo: function(getRelated = false) {
                 var self = this;
                 var query = "SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.auth_address + "\" AND ref_channel_id=" + this.id + " AND video_id=" + this.video_id + " LIMIT 1";
                 console.log(query);
@@ -300,6 +311,8 @@
                     .then((results) => {
                         self.video = results[0];
                         self.getFileInfo();
+                        if (getRelated)
+                            self.getRelatedVideos();
                     });
             },
             getComments: function(mod = this.channel_moderation) {
@@ -320,6 +333,37 @@
                     .then((results) => {
                         console.log(results);
                         self.comments = results;
+                    });
+            },
+            getRelatedVideos: function() {
+                var self = this;
+
+                var searchSelects = [
+                    { col: "title", score: 5 },
+                    { col: "description", score: 4 },
+                    { col: "tags", score: 2 },
+                ];
+
+                var searchQuery = this.video.title + " " + this.video.tags.replace(/[,\|]/g, ' ');
+
+                var query = searchDbQuery(this, searchQuery, {
+                    orderByScore: true,
+                    id_col: "video_id",
+                    select: "videos.*, videos_json.directory, videos_json.cert_user_id, channels.name as channel_name",
+                    searchSelects: searchSelects,
+                    table: "videos",
+                    join: `LEFT JOIN json as videos_json USING (json_id)
+                            LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
+                            LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id`,
+                    afterOrderBy: "date_added ASC",
+                    limit: 6
+                });
+
+                console.log(query);
+
+                page.cmdp("dbQuery", [query])
+                    .then((results) => {
+                        self.relatedVideos = results;
                     });
             },
             getDateFromNow: function(date_int) {

@@ -5,22 +5,24 @@
             <v-container grid-list-xl>
                 <v-layout row wrap>
                     <v-flex xs12 sm6>
-                        <v-card v-for="category in categories.slice(0, Math.round(categories.length / 2.0))" @click.native="addMerger(category.address)" style="cursor: pointer; margin-bottom: 8px;">
-                            <div style="text-align: center;"><strong style="color: blue;">{{ category.name }}</strong></div>
-                            <div style="text-align: center;">
-                                {{ category.description.substring(0, 200) }}<br>
-                                <small>{{ category.cert_user_id }}: {{ category.address }}</small>
-                            </div>
-                        </v-card>
+                        <div v-for="category in categories.slice(0, Math.round(categories.length / 2.0))" style="margin-bottom: 8px;">
+                            <div style="text-align: center;"><a :href="'./?/category/' + category.address" @click.prevent="goto('category/' + category.address)">{{ category.name }}</a></div>
+                            {{ category.description.substring(0, 200) }}<br>
+                            <small>{{ category.cert_user_id }}: {{ category.address }}</small><br>
+                            <a href="#" @click.prevent="deleteMerger(category.address)" v-if="mergerDownloaded(category.address)">Delete</a>
+                            <a href="#" @click.prevent="addMerger(category.address)" v-else>Download</a><br>
+                            <v-divider style="margin-top: 8px;"></v-divider>
+                        </div>
                     </v-flex>
                     <v-flex xs12 sm6>
-                        <v-card v-for="category in categories.slice(Math.round(categories.length / 2.0))" @click.native="addMerger(category.address)" style="cursor: pointer; margin-bottom: 8px;">
-                            <div style="text-align: center;"><strong style="color: blue;">{{ category.name }}</strong></div>
-                            <div style="text-align: center;">
-                                {{ category.description.substring(0, 200) }}<br>
-                                <small>{{ category.cert_user_id }}: {{ category.address }}</small>
-                            </div>
-                        </v-card>
+                        <div v-for="category in categories.slice(Math.round(categories.length / 2.0))" style="margin-bottom: 8px;">
+                            <div style="text-align: center;"><a :href="'./?/category/' + category.address" @click.prevent="goto('category/' + category.address)">{{ category.name }}</a></div>
+                            {{ category.description.substring(0, 200) }}<br>
+                            <small>{{ category.cert_user_id }}: {{ category.address }}</small><br>
+                            <a href="#" @click.prevent="deleteMerger(category.address)" v-if="mergerDownloaded(category.address)">Delete</a>
+                            <a href="#" @click.prevent="addMerger(category.address)" v-else>Download</a><br>
+                            <v-divider style="margin-top: 8px;"></v-divider>
+                        </div>
                     </v-flex>
                 </v-layout>
             </v-container>
@@ -64,19 +66,27 @@
 				if (this.userInfo == null) return false;
 				return this.userInfo.cert_user_id != null;
 			}
-		},
-		methods: {
+        },
+        methods: {
+            mergerDownloaded: function(address) {
+                return this.downloaded[address];
+            },
             getDownloaded: function() {
                 var self = this;
 
-                self.downloaded = [];
+                //self.downloaded = [];
+
+                page.cmdp("mergerSiteList", [true])
+                    .then((mergedZites) => {
+                        console.log(mergedZites["1LaX9nRmY6v2PS2xrAg9M2iXcU2y5wbBQr"]);
+                        self.downloaded = mergedZites;
+                    });
             },
             getCategories: function() {
                 var self = this;
 
                 page.cmdp("dbQuery", ["SELECT * FROM category_hubs LEFT JOIN json USING (json_id)"])
                     .then((results) => {
-                        console.log(results);
                         self.categories = results;
                     });
             },
@@ -108,6 +118,14 @@
                 page.cmd("mergerSiteAdd", [address], function() {
                     self.getDownloaded();
                 });
+            },
+            deleteMerger: function(address) {
+                var self = this;
+
+                page.cmdp("mergerSiteDelete", [address])
+                    .then(() => {
+                        self.getDownloaded();
+                    });
             }
 		}
 	}

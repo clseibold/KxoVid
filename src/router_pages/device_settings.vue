@@ -22,7 +22,7 @@
 			return {
                 channels: [],
                 allowCasting: false,
-                castingServer: "https://0net.io/"
+                castingServer: "https://core.0net.io/"
 			};
 		},
 		beforeMount: function() {
@@ -36,14 +36,14 @@
 
             
             this.allowCasting = this.userSettings.allowCasting != null ? this.userSettings.allowCasting : false;
-            this.castingServer = this.userSettings.castingServer == "" ? "https://0net.io/" : this.userSettings.castingServer;
+            this.castingServer = this.userSettings.castingServer == "" ? "https://core.0net.io/" : this.userSettings.castingServer;
 		},
 		mounted: function() {
 			var self = this;
 
 			this.$emit("setcallback", "update", function(userInfo) {
                 self.allowCasting = self.userSettings.allowCasting != null ? self.userSettings.allowCasting : false;
-                self.castingServer = self.userSettings.castingServer == "" ? "https://0net.io/" : self.userSettings.castingServer;
+                self.castingServer = self.userSettings.castingServer == "" ? "https://core.0net.io/" : self.userSettings.castingServer;
 			});
 		},
 		computed: {

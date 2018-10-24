@@ -105,6 +105,15 @@
                 for (var i = 0; i < subs.length; i++) {
                     var auth_address = subs[i].split(',')[0];
                     var channel_id = subs[i].split(',')[1];
+
+                    if (channel_id == "cat") { // TODO
+                    	if (i == subs.length - 1) {
+                    		// Remove the "OR" at the end of the query
+                    		subsWhereQuery = subsWhereQuery.substring(0, subsWhereQuery.length - 4); // TODO: Kinda hacky
+                    	}
+                    	continue;
+                    }
+
                     subsWhereQuery += " (ref_channel_id=" + channel_id + " AND videos_json.directory=\"data/users/" + auth_address + "\") ";
                     if (i != subs.length - 1) {
                         subsWhereQuery += " OR ";
@@ -118,6 +127,8 @@
 					WHERE ${subsWhereQuery}
 					ORDER BY date_added DESC
 					LIMIT 8`;
+
+				console.log(query);
 
                 page.cmdp("dbQuery", [query])
                     .then((videos) => {
