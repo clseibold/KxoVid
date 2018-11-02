@@ -5,8 +5,11 @@ A video-sharing zite (ZeroNet Site) on the ZeroNet network that supports multipl
 Contributions and PRs are welcome. However, accepting of these contributions to the original code are under the discretion of the author.
 
 ## License
-MPL v1.1
+During the lifetime of the original author (Christian "Krixano" Lee-Ethan Seibold), the MPL v1.1 license applies. After the original author's death, the MIT license applies.
+MPL v1.1: 
 https://tldrlegal.com/license/mozilla-public-license-1.1-(mpl-1.1)
+MIT:
+https://tldrlegal.com/license/mit-license
 
 ## Libraries
 * momentjs - MIT
