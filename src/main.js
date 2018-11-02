@@ -39,10 +39,14 @@ var Vue = require("vue/dist/vue.min.js");
 var Vuetify = require("vuetify");
 var VueZeroFrameRouter = require("./libs/vue-zeroframe-router.js");
 
+var Plyr = require('plyr');
+//var VuePlyr = require('vue-plyr');
+
 //var { sanitizeStringForUrl, sanitizeStringForUrl_SQL, html_substr, sanitizeHtmlForDb } = require("./util.js");
 
 Vue.use(VueZeroFrameRouter.VueZeroFrameRouter);
 Vue.use(Vuetify);
+//Vue.use(VuePlyr.default);
 
 // Vue Components
 var Navbar = require("./vue_components/navbar.vue");

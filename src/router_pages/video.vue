@@ -55,7 +55,9 @@
                 <!-- Video -->
                 <v-flex xs12 md9>
                     <div v-if="video && !isCasting">
-                        <video ref="video" id="vid" style="width: 100%;" :src="video.video_file" controls></video>
+                        <video ref="video" id="vid" controls style="width: 100%;">
+                            <source :src="video.video_file">
+                        </video>
                     </div>
                     <div v-if="video && isCasting">
                         {{ castMedia ? "Playing on" : "Connected to" }} {{ this.castSession.receiver.friendlyName }}<br>
@@ -69,6 +71,9 @@
                 <v-flex xs12 md3>
                     <div class="title" style="margin-bottom: 15px;">{{video.title}}</div>
                     <p class="body-1" v-if="video" v-html="descriptionMarkdown"></p>
+                    <small>
+                        Uploaded {{ getDateFromNow(video.date_added) }}
+                    </small>
                     <div>
                         <v-chip :class="{ 'grey darken-3 white--text' : content_dark }" v-if="video.original">Original</v-chip>
                     </div>
@@ -122,7 +127,7 @@
                 </v-flex>
                 <!-- Related Videos -->
                 <v-flex xs12 md3 v-if="channel && video">
-                    <component :is="videoListItem" v-for="video in relatedVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
+                    <component :is="videoListItem" v-for="video in relatedVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
                 </v-flex>
             </v-layout>
 		</v-container>
@@ -140,6 +145,7 @@
     var searchDbQuery = require("../libs/search.js");
     var moment = require("moment");
     var video_list_item = require("../vue_components/video_list_item.vue");
+    var Plyr = require("plyr");
 
 	module.exports = {
 		props: ["theme", "userSettings", "castingAllowed", "isCasting", "castSession", "userInfo", "langTranslation"],
@@ -160,7 +166,11 @@
                 fileInfo: null,
                 channel_moderation: true,
                 relatedVideos: [],
-                videoListItem: video_list_item
+                videoListItem: video_list_item,
+                player: null,
+                videoPlayerOptions: {
+                    settings: ['captions', 'speed', 'loop']
+                },
 			};
 		},
 		beforeMount: function() {
@@ -184,15 +194,16 @@
             this.getVideo(true);
             this.getComments();
 
-			this.$emit("setcallback", "update", function(userInfo) {
+
+            this.$emit("setcallback", "update", function(userInfo) {
                 //self.userInfo = userInfo;
                 self.determineSubscriptionStatus();
                 self.getVideo(false);
                 self.getComments();
-			});
-		},
-		mounted: function() {
-			var self = this;
+            });
+        },
+        mounted: function() {
+            var self = this;
 		},
 		computed: {
 			isLoggedIn: function() {
@@ -311,8 +322,9 @@
                     .then((results) => {
                         self.video = results[0];
                         self.getFileInfo();
-                        if (getRelated)
+                        if (getRelated) {
                             self.getRelatedVideos();
+                        }
                     });
             },
             getComments: function(mod = this.channel_moderation) {
@@ -349,7 +361,7 @@
                 var query = searchDbQuery(this, searchQuery, {
                     orderByScore: true,
                     id_col: "video_id",
-                    select: "videos.*, videos_json.directory, videos_json.cert_user_id, channels.name as channel_name",
+                    select: "videos.*, videos_json.directory, videos_json.site, videos_json.cert_user_id, channels.name as channel_name",
                     searchSelects: searchSelects,
                     table: "videos",
                     join: `LEFT JOIN json as videos_json USING (json_id)

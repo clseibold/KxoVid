@@ -31,11 +31,11 @@
 				<v-flex xs12 sm4 md5 v-if="userInfo"> <!-- Recent Videos from Subscriptions -->
 					<div class="title" style="text-align: center; margin-bottom: 8px;">Recent Videos from Subscriptions</div>
 					<div class="subheading" v-if="!userInfo.keyvalue.subscriptions || userInfo.keyvalue.subscriptions == ''">You currently have no subscriptions.</div>
-					<component :is="videoListItem" v-for="video in recentSubVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
+					<component :is="videoListItem" v-for="video in recentSubVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
 				</v-flex>
 				<v-flex xs12 sm4 md5> <!-- New Videos -->
 					<div class="title" style="text-align: center; margin-bottom: 8px;">New Videos</div>
-					<component :is="videoListItem" v-for="video in recentVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
+					<component :is="videoListItem" v-for="video in recentVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
 				</v-flex>
 				<v-flex xs12 sm4 md2> <!-- New Channels -->
 					<div class="title" style="text-align: center; margin-bottom: 8px;">New Channels</div>
@@ -120,7 +120,7 @@
                     }
                 }
 
-				var query = `SELECT videos.*, videos_json.directory, videos_json.cert_user_id, channels.name as channel_name FROM videos
+				var query = `SELECT videos.*, videos_json.directory, videos_json.site, videos_json.cert_user_id, channels.name as channel_name FROM videos
 					LEFT JOIN json as videos_json USING (json_id)
 					LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
 					LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id
@@ -139,7 +139,7 @@
 			getRecentVideos: function() {
 				var self = this;
 
-				var query = `SELECT videos.*, videos_json.directory, videos_json.cert_user_id, channels.name as channel_name FROM videos
+				var query = `SELECT videos.*, videos_json.directory, videos_json.site, videos_json.cert_user_id, channels.name as channel_name FROM videos
 					LEFT JOIN json as videos_json USING (json_id)
 					LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
 					LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id

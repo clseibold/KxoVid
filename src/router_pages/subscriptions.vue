@@ -2,7 +2,7 @@
 	<v-container fluid>
         <v-container style="max-width: 700px;">
             <div class="title" style="text-align: center;">Subscriptions</div>
-			<component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
+			<component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
             <!--<div v-for="video in videos" :key="video.video_id" style="margin-bottom: 8px;">
                 <div class="subheading"><a :href="'./?/channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id" @click.prevent="goto('channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id)">{{ video.title }}</a></div>
                 <div class="body-1">
@@ -84,7 +84,7 @@
                     }
                 }
 
-				var query = `SELECT videos.*, videos_json.directory, videos_json.cert_user_id, channels.name as channel_name FROM videos
+				var query = `SELECT videos.*, videos_json.directory, videos_json.site, videos_json.cert_user_id, channels.name as channel_name FROM videos
 					LEFT JOIN json as videos_json USING (json_id)
 					LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
 					LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id

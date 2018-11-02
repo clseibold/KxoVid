@@ -55,7 +55,7 @@
                     <v-layout row wrap fill-height>
                         <v-flex xs12 sm8>
                             <div class="title" style="margin-bottom: 8px;">Recent Videos</div>
-                            <component :is="videoListItem" v-for="video in recent_videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
+                            <component :is="videoListItem" v-for="video in recent_videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="false"></component>
                         </v-flex>
                         <v-flex xs12 sm4>
                             <div class="title" style="text-align: center; margin-bottom: 8px;">About</div>
@@ -66,7 +66,7 @@
                 <!-- Videos Tab -->
                 <v-tab-item key="videos">
                     <v-container style="max-width: 700px;">
-                        <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
+                        <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="false"></component>
                     </v-container>
                 </v-tab-item>
             </v-tabs-items>
@@ -184,7 +184,7 @@
                 var self = this;
 
                 var query = `
-                    SELECT videos.*, videos_json.directory, videos_json.cert_user_id, channels.name as channel_name FROM videos
+                    SELECT videos.*, videos_json.directory, videos_json.site, videos_json.cert_user_id, channels.name as channel_name FROM videos
                         LEFT JOIN json as videos_json USING (json_id)
                         LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
                         LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id
@@ -201,7 +201,7 @@
                 var self = this;
 
                 var query = `
-                    SELECT videos.*, videos_json.directory, videos_json.cert_user_id, channels.name as channel_name FROM videos
+                    SELECT videos.*, videos_json.directory, videos_json.site, videos_json.cert_user_id, channels.name as channel_name FROM videos
                         LEFT JOIN json as videos_json USING (json_id)
                         LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
                         LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id

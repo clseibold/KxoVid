@@ -57,7 +57,7 @@
                     <v-layout row wrap fill-height>
                         <v-flex xs12 sm8>
                             <div class="title" style="margin-bottom: 8px;">Recent Videos</div>
-                            <component :is="videoListItem" v-for="video in recent_videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false"></component>
+                            <component :is="videoListItem" v-for="video in recent_videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false" :show-category="true"></component>
                         </v-flex>
                         <v-flex xs12 sm4>
                             <div class="title" style="text-align: center; margin-bottom: 8px;">About</div>
@@ -68,7 +68,7 @@
                 <!-- Videos Tab -->
                 <v-tab-item key="videos">
                     <v-container style="max-width: 700px;">
-                        <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false"></component>
+                        <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false" :show-category="true"></component>
                     </v-container>
                 </v-tab-item>
             </v-tabs-items>

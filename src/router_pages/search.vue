@@ -11,7 +11,7 @@
                         <small>Uploaded {{ getVideoDate(video) }} by {{ video.channel_name }}</small>
                         <v-divider :dark="content_dark" style="margin-top: 8px;"></v-divider>
                     </div>-->
-                    <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true"></component>
+                    <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
                 </v-flex>
                 <v-flex xs12 md3>
                     <div v-for="channel in channels">
@@ -80,7 +80,7 @@
                 var query = searchDbQuery(this, this.searchQuery || "", {
                     orderByScore: true,
                     id_col: "video_id",
-                    select: "videos.*, videos_json.directory, videos_json.cert_user_id, channels.name as channel_name",
+                    select: "videos.*, videos_json.directory, videos_json.site, videos_json.cert_user_id, channels.name as channel_name",
                     searchSelects: searchSelects,
                     table: "videos",
                     join: `LEFT JOIN json as videos_json USING (json_id)
