@@ -174,7 +174,8 @@
 			};
 		},
 		beforeMount: function() {
-			var self = this;
+            var self = this;
+            this.player = null;
 
 			/*this.$parent.$on("setLanguage", function(langTranslation) {
 				self.ZiteName = langTranslation["KxoId"];
@@ -326,8 +327,8 @@
                         self.video = results[0];
                         self.getFileInfo();
                         //console.log(self.$refs.player);
-                        var playerElement = document.getElementById('vid');
-                        self.player = new Plyr(playerElement);
+                        //var playerElement = document.getElementById('vid');
+                        //self.player = new Plyr(playerElement);
                         if (getRelated) {
                             self.getRelatedVideos();
                         }
