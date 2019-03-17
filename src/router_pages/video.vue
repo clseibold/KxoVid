@@ -305,7 +305,10 @@
                 }
             },
             determineSubscriptionStatus: function() {
-                if (!this.userInfo) return;
+                if (!this.userInfo || !this.userInfo.keyvalue || !this.userInfo.keyvalue.subscriptions) {
+                    this.subscribed = false;
+                    return;
+                }
 
                 if (this.userInfo.keyvalue.subscriptions.indexOf(this.auth_address + "," + this.id) != -1) {
                     this.subscribed = true;

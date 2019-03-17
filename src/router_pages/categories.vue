@@ -99,7 +99,7 @@
 		data: () => {
 			return {
                 downloaded: [],
-                recommendedAddresses: [ "1PXdHUW5GDv6QjA5WYbDQGzF3Q24p4je95", "1CPhomLToaWAaYMkZt3xNEFjXADrBqp14Y", "18izgaM5UJgjQv2cPA9Rw5jrhmh8Up6eTN", "1MDB9Ad4Pyg5cogFx1HhE52cFhsqUmeNEd" ],
+                recommendedAddresses: [ "1PXdHUW5GDv6QjA5WYbDQGzF3Q24p4je95", "1CPhomLToaWAaYMkZt3xNEFjXADrBqp14Y", "18izgaM5UJgjQv2cPA9Rw5jrhmh8Up6eTN", "1MDB9Ad4Pyg5cogFx1HhE52cFhsqUmeNEd", "14KXCzQqSrSjzbk3CfKxHvCVAmJnAZwB4U", "14WZg7nWJHP2o2q4idZbbbipmNAYxyqYo6", "1Q7AL2WvrwBiT9gmk4ngw48AYCZ5wXqx48", "1GWaiBZpwRm3U3vtUYqUMrYRTbjgZva45V" ],
                 categories: [],
                 recommended: [],
                 official: [],

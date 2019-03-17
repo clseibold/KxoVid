@@ -81,6 +81,7 @@
 					<!--<v-list-tile @click="goto('profile')"><v-list-tile-title>Profile</v-list-tile-title></v-list-tile>
 					<v-list-tile @click="goto('settings')"><v-list-tile-title>Settings</v-list-tile-title></v-list-tile>-->
 					<v-list-tile href="./?/device-settings" @click.prevent="goto('device-settings')"><v-list-tile-title>Device Settings</v-list-tile-title></v-list-tile>
+					<v-list-tile href="#" @click.prevent="signout()"><v-list-tile-title>Signout</v-list-tile-title></v-list-tile>
 				</v-list>
 			</v-menu>
 		</v-toolbar-items>
@@ -140,6 +141,9 @@
 			},
 			gotoLink: function(to) {
 				window.location = to;
+			},
+			signout: function() {
+				page.signout();
 			}
 		}
 	}
