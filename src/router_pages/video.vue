@@ -55,7 +55,7 @@
                 <!-- Video -->
                 <v-flex xs12 md9>
                     <div v-if="video && !isCasting">
-                        <video ref="video" id="vid" controls style="width: 100%;">
+                        <video ref="vid" id="vid" controls playsinline style="width: 100%;">
                             <source :src="video.video_file">
                         </video>
                     </div>
@@ -325,6 +325,9 @@
                     .then((results) => {
                         self.video = results[0];
                         self.getFileInfo();
+                        //console.log(self.$refs.player);
+                        var playerElement = document.getElementById('vid');
+                        self.player = new Plyr(playerElement);
                         if (getRelated) {
                             self.getRelatedVideos();
                         }

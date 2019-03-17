@@ -42,7 +42,7 @@
     "markdown-it": "^8.4.2",
     "moment": "^2.22.2",
     "node-sass": "^4.8.1",
-    "plyr": "^3.4.6",
+    "plyr": "^3.5.2",
     "sanitize-html": "^1.19.0",
     "vue": "^2.5.17",
     "vue-plyr": "^5.0.1",
