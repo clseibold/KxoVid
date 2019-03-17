@@ -36,6 +36,13 @@
 				<v-flex xs12 sm4 md5> <!-- New Videos -->
 					<div class="title" style="text-align: center; margin-bottom: 8px;">New Videos</div>
 					<component :is="videoListItem" v-for="video in recentVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+					<div v-if="recentVideos.length <= 0">
+						<p>
+							It appears you have no categories with videos downloaded. Start
+							exploring the different categories on KxoVid by going to the <a href="./?/categories" v-on:click.prevent="gotoCategories()">Categories</a> page
+							from the sidebar.
+						</p>
+					</div>
 				</v-flex>
 				<v-flex xs12 sm4 md2> <!-- New Channels -->
 					<div class="title" style="text-align: center; margin-bottom: 8px;">New Channels</div>

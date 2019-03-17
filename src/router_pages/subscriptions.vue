@@ -3,6 +3,9 @@
         <v-container style="max-width: 700px;">
             <div class="title" style="text-align: center;">Subscriptions</div>
 			<component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+			<div v-if="videos.length <= 0">
+				There are no videos from your subscriptions. Either you have no subscriptions, or there are no videos in the <a href="./?/categories" v-on:click.prevent="">Categories</a> you have downloaded.
+			</div>
             <!--<div v-for="video in videos" :key="video.video_id" style="margin-bottom: 8px;">
                 <div class="subheading"><a :href="'./?/channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id" @click.prevent="goto('channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id)">{{ video.title }}</a></div>
                 <div class="body-1">
@@ -114,6 +117,9 @@
 			},
 			goto: function(to) {
 				Router.navigate(to);
+			},
+			gotoCategories: function() {
+				Router.navigate('categories');
 			},
 			login: function() {
 				page.selectUser();
