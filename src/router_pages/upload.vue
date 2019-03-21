@@ -12,7 +12,7 @@
             <v-checkbox v-model="original" label="Original?"></v-checkbox>
 
 
-            <input class="file-input" ref="fileInput" type="file" accept="video/mp4,video/webm,video/ogg" id="fileUpload"><br>
+            <input class="file-input" ref="fileInput" type="file" accept="video/mp4,video/webm,video/ogg,.cast" id="fileUpload"><br>
             <v-btn :loading="loading" ripple color="primary" @click="uploadVideo()">Upload</v-btn>
         </v-container>
 	</v-container>
@@ -112,6 +112,10 @@
             uploadVideo: function() {
                 var self = this;
 
+                if (!this.selectedChannelId || !this.selectedCategoryAddress) {
+                    page.cmd("wrapperNotification", ["error", "You must select a Channel and a Category."]);
+                }
+
                 if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
 					alert("The File APIs are not fully supported in this browser.");
 					return;
@@ -130,7 +134,7 @@
                 for (let fX in files) {
 					let fY = files[fX];
 
-					if (!fY || typeof fY !== "object" || !fY.type.match("video/mp4|video/ogg|video/webm")) { // |audio|video      || !fY.name.match(/\.IMAGETYPE$/gm)
+					if (!fY || typeof fY !== "object" || (!fY.type.match("video/mp4|video/ogg|video/webm") && !fY.name.match(/\.cast$/gm))) { // |audio|video      || !fY.name.match(/\.IMAGETYPE$/gm)
 						//page.cmd("wrapperNotification", ["error", "That file type is not supported."]);
 						continue;
                     }
@@ -160,6 +164,8 @@
             saveVideo: function(output_url) {
                 var self = this;
 
+                if (!this.selectedChannelId || !this.selectedCategoryAddress) return;
+
                 page.editTableData(self.selectedCategoryAddress, "videos", function(date, data, tableData) {
                     tableData.push({
                         "video_id": date,
@@ -167,7 +173,7 @@
                         "title": self.title,
                         "description": self.description,
                         "tags": self.tags.join("|"),
-                        "original": self.original,
+                        "original": self.original || false,
                         "video_file": output_url,
                         "date_added": date
                     });

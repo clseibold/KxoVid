@@ -217,6 +217,47 @@ var app = new Vue({
 					});
 				}
 
+				// Update FeedFollow info with subscriptions
+				var subs = that.userInfo.keyvalue.subscriptions.split('|');
+                var subsWhereQuery = "";
+
+                for (var i = 0; i < subs.length; i++) {
+                    var auth_address = subs[i].split(',')[0];
+                    var channel_id = subs[i].split(',')[1];
+
+                    if (channel_id == "cat") { // TODO
+                    	if (i == subs.length - 1) {
+                    		// Remove the "OR" at the end of the query
+                    		subsWhereQuery = subsWhereQuery.substring(0, subsWhereQuery.length - 4); // TODO: Kinda hacky
+                    	}
+                    	continue;
+                    }
+                    
+                    subsWhereQuery += " (ref_channel_id=" + channel_id + " AND videos_json.directory=\"data/users/" + auth_address + "\") ";
+                    if (i != subs.length - 1) {
+                        subsWhereQuery += " OR ";
+                    }
+				}
+				
+				console.log("Subs Query: ", subsWhereQuery);
+
+				var query = `SELECT
+						'post' as type,
+						videos.date_added as date_added,
+						channels.name || ': ' || videos.title as title,
+						videos.description as body,
+						'?/channel/' || REPLACE(videos_json.directory, 'data/users/', '') || '/' || videos.ref_channel_id || '/v/' || videos.video_id as url
+					FROM videos
+					LEFT JOIN json as videos_json USING (json_id)
+					LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
+					LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id
+					WHERE ${subsWhereQuery}`;
+				page.cmdp("feedFollow", [{"Subscriptions": [query, ""]}])
+					.then((result) => console.log("FeedFollow: ", result));
+
+				page.cmdp("dbQuery", [query])
+					.then((results) => console.log("Subs Results: ", results));
+
 				console.log("Keyvalue: ", that.userInfo.keyvalue);
 
 				that.gettingUserInfo = false;
@@ -406,7 +447,7 @@ class ZeroApp extends ZeroFrame {
             if (!data) data = {};
             else data = JSON.parse(data);
 
-            var curoptional = ".+\\.(mp4|ogg|webm)(.piecemap.msgpack)?";
+            var curoptional = ".+\\.(mp4|ogg|webm|cast)(.piecemap.msgpack)?";
             var changed = false;
             if (!data.hasOwnProperty("optional") || data.optional !== curoptional){
                 data["optional"] = curoptional

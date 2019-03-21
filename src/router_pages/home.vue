@@ -36,6 +36,7 @@
 				<v-flex xs12 sm4 md5> <!-- New Videos -->
 					<div class="title" style="text-align: center; margin-bottom: 8px;">New Videos</div>
 					<component :is="videoListItem" v-for="video in recentVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+					<a href="'./?/search'" @click.prevent="goto('search')" v-if="recentVideos.length > 0">View All</a>
 					<div v-if="recentVideos.length <= 0">
 						<p>
 							It appears you have no categories with videos downloaded. Start
@@ -50,6 +51,7 @@
 						<div class="subheading" style="text-align: center;"><a :href="'./?/channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id" @click.prevent="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">{{ channel.name }}</a></div>
 						<v-divider style="margin-top: 8px;"></v-divider>
 					</div>
+					<a href="'./?/search'" @click.prevent="goto('search')" v-if="recentChannels.length > 0">View All</a>
 				</v-flex>
 			</v-layout>
 		</v-container>

@@ -1,6 +1,7 @@
 node_modules/
-/js/
-/css/
+/js/all.js
+/js/all.js.map
+/css/main.css
 /index.html
 
 /data/users/

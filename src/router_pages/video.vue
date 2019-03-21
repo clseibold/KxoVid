@@ -1,6 +1,6 @@
 <template>
-	<v-container fluid v-if="channel" style="padding: 0;" :class="getBackground">
-        <v-container style="margin: 0; padding: 0;" fluid>
+	<v-container fluid style="padding: 0;" :class="getBackground">
+        <v-container style="margin: 0; padding: 0;" fluid v-if="channel">
             <v-toolbar :dark="toolbar_dark" flat dense :color="channel.toolbar_color || ''">
                 <!--<div style="max-width: 900px; margin-top: 0; margin-bottom: 0; margin-left: auto; margin-right: auto; padding: 0;">-->
                 <v-layout row style="max-width: 900px; margin-left: auto; margin-right: auto;">
@@ -54,12 +54,13 @@
             <v-layout row wrap fill-height>
                 <!-- Video -->
                 <v-flex xs12 md9>
-                    <div v-if="video && !isCasting">
-                        <video ref="vid" id="vid" controls playsinline style="width: 100%;">
-                            <source :src="video.video_file">
+                    <div v-if="(!isCasting || asciicast)">
+                        <video v-if="!asciicast" ref="vid" id="vid" controls playsinline style="width: 100%; display: none;">
+                            <source id="vidsource" src="">
                         </video>
+                        <asciinema-player :src="video.video_file" v-if="video && asciicast"></asciinema-player>
                     </div>
-                    <div v-if="video && isCasting">
+                    <div v-if="video && isCasting && !asciicast">
                         {{ castMedia ? "Playing on" : "Connected to" }} {{ this.castSession.receiver.friendlyName }}<br>
                         <v-btn :dark="content_dark" icon @click="castVideo">
                             <v-icon v-if="!isCastPlaying">play_arrow</v-icon>
@@ -69,19 +70,21 @@
                 </v-flex>
                 <!-- Video Description -->
                 <v-flex xs12 md3>
-                    <div class="title" style="margin-bottom: 15px;">{{video.title}}</div>
-                    <p class="body-1" v-if="video" v-html="descriptionMarkdown"></p>
-                    <small>
-                        Uploaded {{ getDateFromNow(video.date_added) }}
-                    </small>
-                    <div>
-                        <v-chip :class="{ 'grey darken-3 white--text' : content_dark }" v-if="video.original">Original</v-chip>
-                    </div>
-                    <v-divider small :dark="content_dark" style="margin-top: 8px; margin-bottom: 8px;"></v-divider>
-                    <div>
-                        <v-btn small @click="pinVideo()" v-if="fileInfo.is_pinned == 0">Seed</v-btn>
-                        <v-btn small @click="unpinVideo()" v-else>Stop Seeding</v-btn>
-                        <span>{{ fileInfo.peer }} peers</span>
+                    <div v-if="video">
+                        <div class="title" style="margin-bottom: 15px;">{{video.title}}</div>
+                        <p class="body-1" v-if="video" v-html="descriptionMarkdown"></p>
+                        <small>
+                            Uploaded {{ getDateFromNow(video.date_added) }}
+                        </small>
+                        <div>
+                            <v-chip :class="{ 'grey darken-3 white--text' : content_dark }" v-if="video.original">Original</v-chip>
+                        </div>
+                        <v-divider small :dark="content_dark" style="margin-top: 8px; margin-bottom: 8px;"></v-divider>
+                        <div v-if="fileInfo">
+                            <v-btn small @click="pinVideo()" v-if="fileInfo.is_pinned == 0">Seed</v-btn>
+                            <v-btn small @click="unpinVideo()" v-else>Stop Seeding</v-btn>
+                            <span>{{ fileInfo.peer_seed ? fileInfo.peer_seed + " / " : "" }} {{ fileInfo.peer }} peers</span>
+                        </div>
                     </div>
                 </v-flex>
                 <!-- Comments -->
@@ -152,6 +155,7 @@
 		name: "video",
 		data: () => {
 			return {
+                asciicast: false, // Asciinema .cast file
                 auth_address: "",
                 id: "",
                 channel: null,
@@ -176,6 +180,10 @@
 		beforeMount: function() {
             var self = this;
             this.player = null;
+            this.asciicast = false;
+            this.video = null;
+            this.fileInfo = null;
+            this.castMedia = null;
 
 			/*this.$parent.$on("setLanguage", function(langTranslation) {
 				self.ZiteName = langTranslation["KxoId"];
@@ -189,17 +197,18 @@
             page.cmdp("dbQuery", ["SELECT * FROM channels LEFT JOIN json USING (json_id) WHERE channel_id=" + this.id + " AND directory=\"data/users/" + this.auth_address + "\" LIMIT 1"])
                 .then((results) => {
                     self.channel = results[0];
+                    console.log("Channel: ", results);
                 });
 
             this.determineSubscriptionStatus();
-            this.getVideo(true);
+            this.getVideo(true, true);
             this.getComments();
 
 
             this.$emit("setcallback", "update", function(userInfo) {
                 //self.userInfo = userInfo;
                 self.determineSubscriptionStatus();
-                self.getVideo(false);
+                self.getVideo(false, self.video ? false : true);
                 self.getComments();
             });
         },
@@ -213,7 +222,7 @@
             },
             descriptionMarkdown: function() {
                 //return md.render(this.video.description);
-                return this.video.description.substring(0, 650).replace(/\n/g, "<br>");
+                return (this.video.description || "").substring(0, 650).replace(/\n/g, "<br>");
             },
             toolbar_dark: function() {
                 if (!this.channel) return true;
@@ -228,6 +237,7 @@
                 else if (this.channel.background_color == "dark" || this.theme == "dark") return true;
             },
             getBackground: function() {
+                if (!this.channel) return "";
                 switch (this.channel.background_color) {
                     case "white": return "";
                     case "dark": return "grey darken-4 grey--text text--lighten-5";
@@ -249,6 +259,7 @@
                     });
             },
             castVideo: function() {
+                // TODO: Handle asciinema .cast files
                 var self = this;
 
                 //console.log(this.castSession);
@@ -317,19 +328,36 @@
                     this.subscribed = false;
                 }
             },
-            getVideo: function(getRelated = false) {
+            getVideo: function(getRelated = false, reloadVideo = false) {
                 var self = this;
                 var query = "SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.auth_address + "\" AND ref_channel_id=" + this.id + " AND video_id=" + this.video_id + " LIMIT 1";
                 console.log(query);
 
                 page.cmdp("dbQuery", [query])
                     .then((results) => {
+                        console.log("Video Results: ", results);
+                        var parts = results[0].video_file.split('.');
+                        if (parts[parts.length - 1] == "cast") self.asciicast = true;
+
                         self.video = results[0];
+
+                        var vidPlayer = document.getElementById('vid');
+                        var existingSource = document.getElementById('vidsource');
+
+                        if (existingSource && reloadVideo) {
+                            console.log("Source Exists");
+                            existingSource.src = self.video.video_file;
+                            vidPlayer.load();
+                        }
+
                         self.getFileInfo();
-                        //console.log(self.$refs.player);
-                        //var playerElement = document.getElementById('vid');
-                        //self.player = new Plyr(playerElement);
+                        
+                        if (vidPlayer == null) console.log("Error: vidPlayer is null");
+                        self.player = new Plyr(vidPlayer);
+                        vidPlayer.style.display = "block";
+
                         if (getRelated) {
+                            console.log("Get Related Videos")
                             self.getRelatedVideos();
                         }
                     });
@@ -363,7 +391,7 @@
                     { col: "tags", score: 2 },
                 ];
 
-                var searchQuery = this.video.title + " " + this.video.tags.replace(/[,\|]/g, ' ');
+                var searchQuery = this.video.title + " " + (this.video.tags || "").replace(/[,\|]/g, ' ');
 
                 var query = searchDbQuery(this, searchQuery, {
                     orderByScore: true,

@@ -77,6 +77,11 @@
                     { col: "tags", score: 2 },
                 ];
 
+                var orderBy = "ASC";
+                if (!this.searchQuery) {
+                    orderBy = "DESC";
+                }
+
                 var query = searchDbQuery(this, this.searchQuery || "", {
                     orderByScore: true,
                     id_col: "video_id",
@@ -86,7 +91,7 @@
                     join: `LEFT JOIN json as videos_json USING (json_id)
                             LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
                             LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id`,
-                    afterOrderBy: "date_added ASC"
+                    afterOrderBy: "date_added " + orderBy
                 });
 
                 console.log(query);
