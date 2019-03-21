@@ -83,7 +83,7 @@
                         <div v-if="fileInfo">
                             <v-btn small @click="pinVideo()" v-if="fileInfo.is_pinned == 0">Seed</v-btn>
                             <v-btn small @click="unpinVideo()" v-else>Stop Seeding</v-btn>
-                            <span>{{ fileInfo.peer_seed ? fileInfo.peer_seed + " / " : "" }} {{ fileInfo.peer }} peers</span>
+                            <span>{{ fileInfo.peer_seed ? fileInfo.peer_seed + " / " : "" }} {{ fileInfo.peer }} peers<br>({{ getSize }})</span>
                         </div>
                     </div>
                 </v-flex>
@@ -148,7 +148,7 @@
     var searchDbQuery = require("../libs/search.js");
     var moment = require("moment");
     var video_list_item = require("../vue_components/video_list_item.vue");
-    var Plyr = require("plyr");
+    //var Plyr = require("plyr");
 
 	module.exports = {
 		props: ["theme", "userSettings", "castingAllowed", "isCasting", "castSession", "userInfo", "langTranslation"],
@@ -173,7 +173,10 @@
                 videoListItem: video_list_item,
                 player: null,
                 videoPlayerOptions: {
-                    settings: ['captions', 'speed', 'loop']
+                    //settings: ['captions', 'speed', 'loop'],
+                    //loadSprites: false,
+                    iconUrl: 'http://127.0.0.1:43110/14c5LUN73J7KKMznp9LvZWkxpZFWgE1sDz/css/plyr.svg',
+                    debug: true,
                 },
 			};
 		},
@@ -246,6 +249,25 @@
             },
             isOwner: function() {
                 return this.userInfo.auth_address == this.channel.directory.replace('data/users/', '');
+            },
+            getSize: function() {
+                if (!this.fileInfo) return "";
+
+                var size = this.fileInfo.size / 1024; // KB
+                var mb = false;
+                if (size > 1024) {
+                    size /= 1024;
+                    mb = true;
+                }
+
+                var downloaded_size = this.fileInfo.bytes_downloaded / 1024; // KB
+                var downloaded_mb = false;
+                if (downloaded_size > 1024) {
+                    downloaded_size /= 1024;
+                    downloaded_mb = true;
+                }
+
+                return downloaded_size.toFixed(2) + (downloaded_mb ? " MB " : " KB ") + "/ " + size.toFixed(2) + (mb ? " MB" : " KB");
             }
 		},
 		methods: {
@@ -353,7 +375,7 @@
                         self.getFileInfo();
                         
                         if (vidPlayer == null) console.log("Error: vidPlayer is null");
-                        self.player = new Plyr(vidPlayer);
+                        self.player = new Plyr(vidPlayer, self.videoPlayerOptions);
                         vidPlayer.style.display = "block";
 
                         if (getRelated) {

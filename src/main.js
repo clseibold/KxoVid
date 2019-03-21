@@ -39,7 +39,7 @@ var Vue = require("vue/dist/vue.min.js");
 var Vuetify = require("vuetify");
 var VueZeroFrameRouter = require("./libs/vue-zeroframe-router.js");
 
-var Plyr = require('plyr');
+Plyr = require('plyr/dist/plyr.polyfilled.min.js');
 //var VuePlyr = require('vue-plyr');
 
 //var { sanitizeStringForUrl, sanitizeStringForUrl_SQL, html_substr, sanitizeHtmlForDb } = require("./util.js");
@@ -242,7 +242,8 @@ var app = new Vue({
 				console.log("Subs Query: ", subsWhereQuery);
 
 				var query = `SELECT
-						'post' as type,
+						videos.video_id as event_uri,
+						'article' as type,
 						videos.date_added as date_added,
 						channels.name || ': ' || videos.title as title,
 						videos.description as body,

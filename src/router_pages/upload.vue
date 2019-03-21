@@ -114,6 +114,7 @@
 
                 if (!this.selectedChannelId || !this.selectedCategoryAddress) {
                     page.cmd("wrapperNotification", ["error", "You must select a Channel and a Category."]);
+                    return;
                 }
 
                 if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
@@ -124,6 +125,11 @@
                 var that = this;
 				var fileUpload = self.$refs.fileInput;
                 var files = fileUpload.files;
+
+                if (files.length <= 0) {
+                    page.cmd("wrapperNotification", ["error", "You must select a video file to upload."]);
+                    return;
+                }
                 
                 if (!files) {
                     self.loading = false;

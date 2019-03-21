@@ -148,7 +148,7 @@
             getCategories: function() {
                 var self = this;
 
-                page.cmdp("dbQuery", ["SELECT * FROM category_hubs LEFT JOIN json USING (json_id)"])
+                page.cmdp("dbQuery", ["SELECT * FROM category_hubs LEFT JOIN json USING (json_id) ORDER BY name ASC"])
                     .then((results) => {
                         self.categories = results;
 
