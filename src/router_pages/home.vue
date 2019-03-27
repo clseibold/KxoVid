@@ -1,5 +1,5 @@
 <template>
-	<v-container fluid v-if="!gettingSettings">
+	<v-container fluid v-if="!gettingSettings" class="pa-0">
 		<v-container style="max-width: 700px;" v-if="!userSettings.introductionFinished">
 			<div class="headline" style="text-align: center; margin-bottom: 8px;">Welcome to KxoVid!</div>
 			<div class="subheading" style="margin-bottom: 4px;">KxoVid is a video sharing zite for ZeroNet, much like YouTube. Below is a brief guide on how KxoVid works and some of its features.</div>
@@ -26,34 +26,91 @@
 			<v-btn @click="register()">Register a KxoId</v-btn>
 			<a href="./?/categories" @click.prevent="gotoCategories()">View Categories Index</a>
 		</v-container>
-		<v-container v-else grid-list-xl>
+		<v-container v-else grid-list-xl class="hidden-sm-and-down">
 			<v-layout row wrap>
 				<v-flex xs12 sm4 md5 v-if="userInfo"> <!-- Recent Videos from Subscriptions -->
-					<div class="title" style="text-align: center; margin-bottom: 8px;">Recent Videos from Subscriptions</div>
-					<div class="subheading" v-if="!userInfo.keyvalue.subscriptions || userInfo.keyvalue.subscriptions == ''">You currently have no subscriptions.</div>
-					<component :is="videoListItem" v-for="video in recentSubVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+					<div class="title" style="text-align: center; margin-bottom: 20px; font-weight: 600;">Recent Videos from Subscriptions</div>
+					<v-list two-line>
+						<component :is="videoListItem" v-for="video in recentSubVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+						<v-list-tile v-if="recentSubVideos.length <= 0" style="margin-top: 16px;">
+							<p>
+								You currently have no subscriptions.
+							</p>
+						</v-list-tile>
+					</v-list>
+					<a href="'./?/subscriptions'" @click.prevent="goto('subscriptions')" v-if="recentSubVideos.length > 0">View All</a>
+				</v-flex>
+				<v-flex xs12 sm2 md2 v-if="!userInfo">
 				</v-flex>
 				<v-flex xs12 sm4 md5> <!-- New Videos -->
-					<div class="title" style="text-align: center; margin-bottom: 8px;">New Videos</div>
-					<component :is="videoListItem" v-for="video in recentVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+					<div class="title" style="text-align: center; margin-bottom: 20px; font-weight: 600;">New Videos</div>
+					<v-list two-line>
+						<component :is="videoListItem" v-for="video in recentVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+						<v-list-tile v-if="recentVideos.length <= 0" style="margin-top: 16px;">
+							<p>
+								It appears you have no categories with videos downloaded. Start
+								exploring the different categories on KxoVid by going to the <a href="./?/categories" v-on:click.prevent="gotoCategories()">Categories</a> page
+								from the sidebar.
+							</p>
+						</v-list-tile>
+					</v-list>
 					<a href="'./?/search'" @click.prevent="goto('search')" v-if="recentVideos.length > 0">View All</a>
-					<div v-if="recentVideos.length <= 0">
-						<p>
-							It appears you have no categories with videos downloaded. Start
-							exploring the different categories on KxoVid by going to the <a href="./?/categories" v-on:click.prevent="gotoCategories()">Categories</a> page
-							from the sidebar.
-						</p>
-					</div>
 				</v-flex>
 				<v-flex xs12 sm4 md2> <!-- New Channels -->
-					<div class="title" style="text-align: center; margin-bottom: 8px;">New Channels</div>
-					<div v-for="channel in recentChannels" style="margin-bottom: 8px;">
-						<div class="subheading" style="text-align: center;"><a :href="'./?/channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id" @click.prevent="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">{{ channel.name }}</a></div>
+					<div class="title" style="text-align: center; margin-bottom: 20px; font-weight: 600;">New Channels</div>
+					<!--<div v-for="channel in recentChannels" style="padding-bottom: 8px; padding-left: 8px; padding-right: 8px;" class="secondary darken-1">
+						<div class="subheading" style="text-align: right;"><a :href="'./?/channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id" @click.prevent="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">{{ channel.name }}</a></div>
 						<v-divider style="margin-top: 8px;"></v-divider>
-					</div>
-					<a href="'./?/search'" @click.prevent="goto('search')" v-if="recentChannels.length > 0">View All</a>
+					</div>-->
+					<v-list>
+						<template v-for="channel in recentChannels">
+							<v-list-tile :title="channel.name" v-bind:key="channel.channel_id + ',' + channel.directory" @click="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">
+								<v-list-tile-content>
+									<v-list-tile-title>{{ channel.name }}</v-list-tile-title>
+									<v-list-tile-sub-title>{{ channel.about }}</v-list-tile-sub-title>
+								</v-list-tile-content>
+							</v-list-tile>
+							<v-divider v-bind:key="channel.channel_id + ',' + channel.directory"></v-divider>
+						</template>
+					</v-list>
+					<a href="'./?/search'" @click.prevent="goto('search')" v-if="recentChannels.length > 0" style="text-align: right;">View All</a>
 				</v-flex>
 			</v-layout>
+		</v-container>
+		<v-container v-if="userSettings.introductionFinished" class="hidden-md-and-up pa-0">
+			<v-list two-line subheader>
+				<div v-if="userInfo">
+					<v-subheader style="font-weight: 600;">Recent Videos from Subscriptions</v-subheader>
+					<component :is="videoListItem" v-for="video in recentSubVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+					<v-list-tile v-if="recentSubVideos.length <= 0" style="margin-top: 16px;">
+						<p>
+							You currently have no subscriptions.
+						</p>
+					</v-list-tile>
+					<v-divider v-if="recentSubVideos.length <= 0"></v-divider>
+				</div>
+
+				<v-subheader style="font-weight: 600;">New Videos</v-subheader>
+				<component :is="videoListItem" v-for="video in recentVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+				<v-list-tile v-if="recentVideos.length <= 0" style="margin-top: 16px;">
+					<p>
+						It appears you have no categories with videos downloaded. Start
+						exploring the different categories on KxoVid by going to the <a href="./?/categories" v-on:click.prevent="gotoCategories()">Categories</a> page
+						from the sidebar.
+					</p>
+				</v-list-tile>
+
+				<v-subheader style="font-weight: 600;">New Channels</v-subheader>
+				<template v-for="channel in recentChannels">
+					<v-list-tile :title="channel.name" v-bind:key="channel.channel_id + ',' + channel.directory" @click="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">
+						<v-list-tile-content>
+							<v-list-tile-title>{{ channel.name }}</v-list-tile-title>
+							<v-list-tile-sub-title>{{ channel.about }}</v-list-tile-sub-title>
+						</v-list-tile-content>
+					</v-list-tile>
+					<v-divider v-bind:key="channel.channel_id + ',' + channel.directory"></v-divider>
+				</template>
+			</v-list>
 		</v-container>
 	</v-container>
 </template>

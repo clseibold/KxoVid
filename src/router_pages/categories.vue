@@ -5,8 +5,8 @@
 
             <v-tabs show-arrows centered v-model="currentTab" style="max-width: 900px; margin-left: auto; margin-right: auto; margin-top: 20px;">
                 <v-tab key="recommended" ripple>Recommended</v-tab>
-                <v-tab key="official" ripple>Official</v-tab>
                 <v-tab key="all" ripple>All</v-tab>
+                <v-tab key="official" ripple>Official</v-tab>
             </v-tabs>
 
             <v-container grid-list-xl>
@@ -35,30 +35,6 @@
                             </v-flex>
                         </v-layout>
                     </v-tab-item>
-                    <v-tab-item key="official">
-                        <v-layout row wrap>
-                            <v-flex xs12 sm6>
-                                <div v-for="category in official.slice(0, Math.round(official.length / 2.0))" style="margin-bottom: 8px;">
-                                    <div style="text-align: center;"><a :href="'./?/category/' + category.address" @click.prevent="goto('category/' + category.address)">{{ category.name }}</a></div>
-                                    {{ category.description.substring(0, 200) }}<br>
-                                    <small>{{ category.cert_user_id }}: {{ category.address }}</small><br>
-                                    <a href="#" @click.prevent="deleteMerger(category.address)" v-if="mergerDownloaded(category.address)">Delete</a>
-                                    <a href="#" @click.prevent="addMerger(category.address)" v-else>Download</a><br>
-                                    <v-divider style="margin-top: 8px;"></v-divider>
-                                </div>
-                            </v-flex>
-                            <v-flex xs12 sm6>
-                                <div v-for="category in official.slice(Math.round(official.length / 2.0))" style="margin-bottom: 8px;">
-                                    <div style="text-align: center;"><a :href="'./?/category/' + category.address" @click.prevent="goto('category/' + category.address)">{{ category.name }}</a></div>
-                                    {{ category.description.substring(0, 200) }}<br>
-                                    <small>{{ category.cert_user_id }}: {{ category.address }}</small><br>
-                                    <a href="#" @click.prevent="deleteMerger(category.address)" v-if="mergerDownloaded(category.address)">Delete</a>
-                                    <a href="#" @click.prevent="addMerger(category.address)" v-else>Download</a><br>
-                                    <v-divider style="margin-top: 8px;"></v-divider>
-                                </div>
-                            </v-flex>
-                        </v-layout>
-                    </v-tab-item>
                     <v-tab-item key="all">
                         <v-layout row wrap>
                             <v-flex xs12 sm6>
@@ -73,6 +49,30 @@
                             </v-flex>
                             <v-flex xs12 sm6>
                                 <div v-for="category in categories.slice(Math.round(categories.length / 2.0))" style="margin-bottom: 8px;">
+                                    <div style="text-align: center;"><a :href="'./?/category/' + category.address" @click.prevent="goto('category/' + category.address)">{{ category.name }}</a></div>
+                                    {{ category.description.substring(0, 200) }}<br>
+                                    <small>{{ category.cert_user_id }}: {{ category.address }}</small><br>
+                                    <a href="#" @click.prevent="deleteMerger(category.address)" v-if="mergerDownloaded(category.address)">Delete</a>
+                                    <a href="#" @click.prevent="addMerger(category.address)" v-else>Download</a><br>
+                                    <v-divider style="margin-top: 8px;"></v-divider>
+                                </div>
+                            </v-flex>
+                        </v-layout>
+                    </v-tab-item>
+                    <v-tab-item key="official">
+                        <v-layout row wrap>
+                            <v-flex xs12 sm6>
+                                <div v-for="category in official.slice(0, Math.round(official.length / 2.0))" style="margin-bottom: 8px;">
+                                    <div style="text-align: center;"><a :href="'./?/category/' + category.address" @click.prevent="goto('category/' + category.address)">{{ category.name }}</a></div>
+                                    {{ category.description.substring(0, 200) }}<br>
+                                    <small>{{ category.cert_user_id }}: {{ category.address }}</small><br>
+                                    <a href="#" @click.prevent="deleteMerger(category.address)" v-if="mergerDownloaded(category.address)">Delete</a>
+                                    <a href="#" @click.prevent="addMerger(category.address)" v-else>Download</a><br>
+                                    <v-divider style="margin-top: 8px;"></v-divider>
+                                </div>
+                            </v-flex>
+                            <v-flex xs12 sm6>
+                                <div v-for="category in official.slice(Math.round(official.length / 2.0))" style="margin-bottom: 8px;">
                                     <div style="text-align: center;"><a :href="'./?/category/' + category.address" @click.prevent="goto('category/' + category.address)">{{ category.name }}</a></div>
                                     {{ category.description.substring(0, 200) }}<br>
                                     <small>{{ category.cert_user_id }}: {{ category.address }}</small><br>

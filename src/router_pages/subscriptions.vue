@@ -1,11 +1,15 @@
 <template>
-	<v-container fluid>
-        <v-container style="max-width: 700px;">
-            <div class="title" style="text-align: center;">Subscriptions</div>
-			<component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
-			<div v-if="videos.length <= 0">
-				There are no videos from your subscriptions. Either you have no subscriptions, or there are no videos in the <a href="./?/categories" v-on:click.prevent="">Categories</a> you have downloaded.
-			</div>
+	<v-container fluid class="pa-0">
+        <v-container style="max-width: 700px;" class="hidden-sm-and-down">
+            <div class="title" style="text-align: center; margin-bottom: 20px;">Subscriptions</div>
+			<v-list two-line>
+				<component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+				<v-list-tile v-if="videos.length <= 0" style="margin-top: 16px;">
+					<p>
+						There are no videos from your subscriptions. Either you have no subscriptions, or there are no videos in the <a href="./?/categories" v-on:click.prevent="">Categories</a> you have downloaded.
+					</p>
+				</v-list-tile>
+			</v-list>
             <!--<div v-for="video in videos" :key="video.video_id" style="margin-bottom: 8px;">
                 <div class="subheading"><a :href="'./?/channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id" @click.prevent="goto('channel/' + video.directory.replace('data/users/', '') + '/' + video.ref_channel_id + '/v/' + video.video_id)">{{ video.title }}</a></div>
                 <div class="body-1">
@@ -15,6 +19,17 @@
                 <v-divider :dark="content_dark" style="margin-top: 8px;"></v-divider>
             </div>-->
         </v-container>
+		<v-container class="hidden-md-and-up pa-0">
+			<v-list two-line subheader>
+				<v-subheader>Subscriptions</v-subheader>
+				<component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+				<v-list-tile v-if="videos.length <= 0" style="margin-top: 16px;">
+					<p>
+						There are no videos from your subscriptions. Either you have no subscriptions, or there are no videos in the <a href="./?/categories" v-on:click.prevent="">Categories</a> you have downloaded.
+					</p>
+				</v-list-tile>
+			</v-list>
+		</v-container>
 	</v-container>
 </template>
 

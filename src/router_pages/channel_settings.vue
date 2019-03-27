@@ -1,8 +1,11 @@
 <template>
 	<v-container fluid>
 		<v-container style="max-width: 700px;" v-if="userInfo && channel">
+            <div class="title" style="text-align: center; margin-bottom: 20px;">Channel Settings: {{ channel.name }}</div>
+
             <v-tabs show-arrows :dark="theme == 'dark'" centered v-model="currentTab" style="max-width: 900px; margin-left: auto; margin-right: auto; margin-bottom: 8px;">
                 <v-tab key="general" ripple>General</v-tab>
+                <v-tab key="videos" ripple>Videos</v-tab>
                 <v-tab key="playlists" ripple>Playlist Management</v-tab>
                 <v-tab key="comment_moderations" ripple>Comment Moderations</v-tab>
                 <!--<v-tab>Discussion</v-tab>-->
@@ -13,8 +16,20 @@
                     <v-text-field multi-line label="About" v-model="about"></v-text-field>
                     <v-select label="Toolbar Color" :items="toolbar_colors" v-model="toolbar_color"></v-select>
                     <v-select label="Background Color" :items="background_colors" v-model="background_color"></v-select>
+
                     <v-btn ripple color="primary" @click="saveChannel()">Save</v-btn>
                     <v-btn ripple dark color="red" @click="deleteChannel()">Delete</v-btn>
+                    <a :href="'./?/channel/' + userInfo.auth_address + '/' + channel.channel_id" v-on:click.prevent="goto('channel/' + userInfo.auth_address + '/' + channel.channel_id)">View Channel</a>
+                </v-tab-item>
+                <v-tab-item key="videos">
+                    <v-list two-line>
+                        <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false" :show-category="true" :edit="true"></component>
+                        <v-list-tile v-if="videos.length <= 0" style="margin-top: 16px;">
+                            <p>
+                                Looks like there are no videos! <span v-if="isLoggedIn"><a href="./?/upload" v-on:click.prevent="goto('upload')">Upload some here!</a></span>
+                            </p>
+                        </v-list-tile>
+                    </v-list>
                 </v-tab-item>
                 <v-tab-item key="playlists">
                     <div v-for="playlist in playlists" style="margin-bottom: 8px;">
@@ -32,7 +47,8 @@
 
 <script>
 	var Router = require("../libs/router.js");
-	var searchDbQuery = require("../libs/search.js");
+    var searchDbQuery = require("../libs/search.js");
+    var video_list_item = require("../vue_components/video_list_item.vue");
 
 	module.exports = {
 		props: ["theme", "userInfo", "langTranslation"],
@@ -49,7 +65,9 @@
                 background_color: "",
                 currentTab: 0,
                 playlists: [],
-                playlistName: ""
+                playlistName: "",
+                videos: [],
+                videoListItem: video_list_item
 			};
 		},
 		beforeMount: function() {
@@ -67,10 +85,12 @@
             
             this.getChannel();
             this.getPlaylists();
+            this.getVideos();
 
 			this.$emit("setcallback", "update", function(userInfo) {
                 self.getChannel();
                 self.getPlaylists();
+                self.getVideos();
 			});
 		},
 		computed: {
@@ -106,6 +126,15 @@
                     .then((playlists) => {
                         self.playlists = playlists;
                         console.log(playlists);
+                    });
+            },
+            getVideos: function() {
+                var self = this;
+
+                page.cmdp("dbQuery", ["SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.userInfo.auth_address + "\" AND ref_channel_id=" + this.id + " ORDER BY date_added DESC LIMIT 8"])
+                    .then((results) => {
+                        console.log(results);
+                        self.videos = results;
                     });
             },
 			getCors: function(address, callback = null) {

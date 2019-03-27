@@ -38,12 +38,16 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "clappr": "^0.3.3",
+    "clappr-playback-rate-plugin": "^0.5.1",
+    "clappr-video360": "0.0.6",
     "jdenticon": "^2.1.0",
     "markdown-it": "^8.4.2",
     "moment": "^2.22.2",
     "node-sass": "^4.8.1",
     "plyr": "^3.5.2",
     "sanitize-html": "^1.19.0",
+    "video.js": "^7.4.1",
     "vue": "^2.5.17",
     "vue-plyr": "^5.0.1",
     "vuetify": "^1.0.19"

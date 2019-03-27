@@ -48,17 +48,22 @@
                 </v-layout>
             </v-toolbar>
         </v-container>
-		<v-container style="max-width: 900px;">
+		<v-container style="max-width: 900px;" grid-list-xl>
             <v-tabs-items v-model="currentTab">
                 <!-- Overview Tab -->
                 <v-tab-item key="overview">
                     <v-layout row wrap fill-height>
                         <v-flex xs12 sm8>
-                            <div class="title" style="margin-bottom: 8px;">Recent Videos</div>
-                            <component :is="videoListItem" v-for="video in recent_videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="false"></component>
+                            <div class="title" style="margin-bottom: 20px;">Recent Videos</div>
+                            <v-list two-line>
+                                <component :is="videoListItem" v-for="video in recent_videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="false"></component>
+                                <v-list-tile v-if="videos.length <= 0" style="margin-top: 16px;">
+                                    <p>This category does not currently have any videos. Be the first to <a href="./?/upload" v-on:click.prevent="goto('upload')">Upload</a></p>
+                                </v-list-tile>
+                            </v-list>
                         </v-flex>
                         <v-flex xs12 sm4>
-                            <div class="title" style="text-align: center; margin-bottom: 8px;">About</div>
+                            <div class="title" style="text-align: center; margin-bottom: 20px;">About</div>
                             <p style="text-align: center;">{{ category.description }}</p>
                         </v-flex>
                     </v-layout>
@@ -66,7 +71,14 @@
                 <!-- Videos Tab -->
                 <v-tab-item key="videos">
                     <v-container style="max-width: 700px;">
-                        <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="false"></component>
+                        <v-list two-line>
+                            <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="false"></component>
+                            <v-list-tile v-if="videos.length <= 0" style="margin-top: 16px;">
+                                <p>
+                                    This category does not currently have any videos. Be the first to <a href="./?/upload" v-on:click.prevent="goto('upload')">Upload</a>
+                                </p>
+                            </v-list-tile>
+                        </v-list>
                     </v-container>
                 </v-tab-item>
             </v-tabs-items>
@@ -97,7 +109,8 @@
                 recent_videos: [],
                 videos: [],
                 currentTab: 0,
-                videoListItem: video_list_item
+                videoListItem: video_list_item,
+                downloaded: false
 			};
 		},
 		beforeMount: function() {
@@ -116,16 +129,34 @@
             
             this.address = Router.currentParams["address"];
 
+            page.cmdp("mergerSiteList", [true])
+                    .then((mergedZites) => {
+                        for (var property in mergedZites) {
+                            if (property == self.address) {
+                                self.downloaded = true;
+                                break;
+                            }
+                        }
+                        
+                        if (!self.downloaded) {
+                            // Download and reload stuff
+                            self.addMerger(self.address, function() {
+                                self.getRecentVideos();
+                                self.getVideos();
+                            });
+                        }
+                    });
+
             var query = `
                 SELECT * FROM category_hubs
                 LEFT JOIN json USING (json_id)
                 WHERE address="${ this.address }"
                 LIMIT 1
                 `;
-            console.log(query);
+            //console.log(query);
             page.cmdp("dbQuery", [query])
                 .then((results) => {
-                    console.log(results);
+                    //console.log(results);
                     self.category = results[0];
                 });
 
@@ -285,6 +316,10 @@
                 }, function() {
                     self.subscribed = false;
                 });
+            },
+            addMerger: function(address, f = null) {
+                var self = this;
+                page.cmd("mergerSiteAdd", [address], f);
             }
 		}
 	}

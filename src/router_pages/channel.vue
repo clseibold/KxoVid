@@ -50,17 +50,24 @@
                 <!--</div>-->
             </v-toolbar>
         </v-container>
-		<v-container style="max-width: 900px;">
+		<v-container style="max-width: 900px;" grid-list-xl>
             <v-tabs-items v-model="currentTab">
                 <!-- Overview Tab -->
                 <v-tab-item key="overview">
                     <v-layout row wrap fill-height>
                         <v-flex xs12 sm8>
-                            <div class="title" style="margin-bottom: 8px;">Recent Videos</div>
-                            <component :is="videoListItem" v-for="video in recent_videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false" :show-category="true"></component>
+                            <div class="title" style="margin-bottom: 20px;">Recent Videos</div>
+                            <v-list :dark="content_dark" :light="content_light" two-line>
+                                <component :is="videoListItem" v-for="video in recent_videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false" :show-category="true"></component>
+                                <v-list-tile v-if="recent_videos.length <= 0" style="margin-top: 16px;">
+                                    <p>
+                                        Looks like there are no videos! Remember that this page will only list videos the user has uploaded <em>in categories that you have merged/downloaded.</em>
+                                    </p>
+                                </v-list-tile>
+                            </v-list>
                         </v-flex>
                         <v-flex xs12 sm4>
-                            <div class="title" style="text-align: center; margin-bottom: 8px;">About</div>
+                            <div class="title" style="text-align: center; margin-bottom: 20px;">About</div>
                             <p style="text-align: center;">{{ channel.about }}</p>
                         </v-flex>
                     </v-layout>
@@ -68,7 +75,14 @@
                 <!-- Videos Tab -->
                 <v-tab-item key="videos">
                     <v-container style="max-width: 700px;">
-                        <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false" :show-category="true"></component>
+                        <v-list :dark="content_dark" :light="content_light" two-line>
+                            <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false" :show-category="true"></component>
+                            <v-list-tile v-if="recent_videos.length <= 0" style="margin-top: 16px;">
+                                <p>
+                                    Looks like there are no videos! Remember that this page will only list videos the user has uploaded <em>in categories that you have merged/downloaded.</em>
+                                </p>
+                            </v-list-tile>
+                        </v-list>
                     </v-container>
                 </v-tab-item>
             </v-tabs-items>
@@ -89,7 +103,7 @@
     var video_list_item = require("../vue_components/video_list_item.vue");
 
 	module.exports = {
-		props: ["userInfo", "langTranslation"],
+		props: ["userInfo", "langTranslation", "theme"],
 		name: "channel",
 		data: () => {
 			return {
@@ -151,10 +165,16 @@
                 return true;
             },
             content_dark: function() {
-                if (!this.channel) return false;
+                if (!this.channel || this.channel.background_color == "" || !this.channel.background_color) return this.theme == "dark";
 
-                if (this.channel.background_color == "white") return false;
-                else if (this.channel.background_color == "dark") return true;
+                if (this.channel.background_color != "white") return true;
+                else return this.theme == "dark";
+            },
+            content_light: function() {
+                if (!this.channel || this.channel.background_color == "" || !this.channel.background_color) return this.theme != "dark";
+
+                if (this.channel.background_color == "white") return true;
+                else return this.theme != "dark";
             },
             getBackground: function() {
                 switch (this.channel.background_color) {

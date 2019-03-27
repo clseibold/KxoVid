@@ -54,14 +54,16 @@
             <v-layout row wrap fill-height>
                 <!-- Video -->
                 <v-flex xs12 md9>
-                    <div v-if="(!isCasting || asciicast)">
-                        <video v-if="!asciicast" ref="vid" id="vid" controls playsinline style="width: 100%; display: none;">
+                    <div v-if="!isCasting && !asciicast">
+                        <video v-if="!asciicast" ref="vid" id="vid" vjs-big-play-centered controls playsinline style="width: 100%; display: none;">
                             <source id="vidsource" src="">
                         </video>
-                        <asciinema-player :src="video.video_file" v-if="video && asciicast"></asciinema-player>
                     </div>
-                    <div v-if="video && isCasting && !asciicast">
-                        {{ castMedia ? "Playing on" : "Connected to" }} {{ this.castSession.receiver.friendlyName }}<br>
+                    <div v-if="video && !isCasting && asciicast">
+                        <asciinema-player :src="video.video_file || ''"></asciinema-player>
+                    </div>
+                    <div v-show="isCasting && !asciicast">
+                        {{ castMedia ? "Playing on" : "Connected to" }} {{ this.castSession && this.castSession.receiver ? this.castSession.receiver.friendlyName : "" }}<br>
                         <v-btn :dark="content_dark" icon @click="castVideo">
                             <v-icon v-if="!isCastPlaying">play_arrow</v-icon>
                             <v-icon v-if="isCastPlaying">pause</v-icon>
@@ -83,7 +85,7 @@
                         <div v-if="fileInfo">
                             <v-btn small @click="pinVideo()" v-if="fileInfo.is_pinned == 0">Seed</v-btn>
                             <v-btn small @click="unpinVideo()" v-else>Stop Seeding</v-btn>
-                            <span>{{ fileInfo.peer_seed ? fileInfo.peer_seed + " / " : "" }} {{ fileInfo.peer }} peers<br>({{ getSize }})</span>
+                            <span>{{ (typeof fileInfo.peer_seed) != undefined && fileInfo.peer_seed != null ? fileInfo.peer_seed + " / " : "" }} {{ fileInfo.peer }} peers<br>({{ getSize }})</span>
                         </div>
                     </div>
                 </v-flex>
@@ -93,7 +95,7 @@
                     <div class="subheading">
                         {{ comments ? comments.length : "" }} Comments
 
-                        <v-switch :dark="content_dark" @click="getComments(!channel_moderation)"
+                        <v-switch :dark="content_dark" :light="content_light" @click="getComments(!channel_moderation)"
                         label="Hide Channel Moderated Content"
                         v-model="channel_moderation"
                         style="float: right; display: inline;"></v-switch>
@@ -115,7 +117,7 @@
                                 </v-flex>
                                 <v-flex xs10 sm11>
                                     <a href="#" @click.prevent="" style="font-weight: bold;">{{ comment.cert_user_id }}</a>
-                                    <div class="body-2">{{ comment.body }}</div>
+                                    <div class="body-2" v-html="renderMarkdown(comment.body)"></div>
                                     <small>
                                         {{ getDateFromNow(comment.date_added) }} {{ comment.date_updated ? "(edited)" : "" }}
                                         <span v-if="isOwner"> | 
@@ -130,7 +132,10 @@
                 </v-flex>
                 <!-- Related Videos -->
                 <v-flex xs12 md3 v-if="channel && video">
-                    <component :is="videoListItem" v-for="video in relatedVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+                    <v-list :dark="content_dark" :light="content_light" two-line subheader>
+                        <v-subheader style="font-weight: 600;">Related Videos</v-subheader>
+                        <component :is="videoListItem" v-for="video in relatedVideos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+                    </v-list>
                 </v-flex>
             </v-layout>
 		</v-container>
@@ -172,21 +177,19 @@
                 relatedVideos: [],
                 videoListItem: video_list_item,
                 player: null,
-                videoPlayerOptions: {
-                    //settings: ['captions', 'speed', 'loop'],
-                    //loadSprites: false,
-                    iconUrl: 'http://127.0.0.1:43110/14c5LUN73J7KKMznp9LvZWkxpZFWgE1sDz/css/plyr.svg',
-                    debug: true,
-                },
 			};
 		},
 		beforeMount: function() {
             var self = this;
-            this.player = null;
             this.asciicast = false;
             this.video = null;
             this.fileInfo = null;
             this.castMedia = null;
+
+            if (this.player) {
+                this.player.destroy();
+                this.player = null;
+            }
 
 			/*this.$parent.$on("setLanguage", function(langTranslation) {
 				self.ZiteName = langTranslation["KxoId"];
@@ -225,7 +228,7 @@
             },
             descriptionMarkdown: function() {
                 //return md.render(this.video.description);
-                return (this.video.description || "").substring(0, 650).replace(/\n/g, "<br>");
+                return md.render((this.video.description || "").substring(0, 600));
             },
             toolbar_dark: function() {
                 if (!this.channel) return true;
@@ -234,10 +237,16 @@
                 return true;
             },
             content_dark: function() {
-                if (!this.channel) return false;
+                if (!this.channel || this.channel.background_color == "" || !this.channel.background_color) return this.theme == "dark";
 
-                if (this.channel.background_color == "white" && this.theme != "dark") return false;
-                else if (this.channel.background_color == "dark" || this.theme == "dark") return true;
+                if (this.channel.background_color != "white") return true;
+                else return this.theme == "dark";
+            },
+            content_light: function() {
+                if (!this.channel || this.channel.background_color == "" || !this.channel.background_color) return this.theme != "dark";
+
+                if (this.channel.background_color == "white") return true;
+                else return this.theme != "dark";
             },
             getBackground: function() {
                 if (!this.channel) return "";
@@ -248,6 +257,7 @@
                 }
             },
             isOwner: function() {
+                if (!this.userInfo) return false;
                 return this.userInfo.auth_address == this.channel.directory.replace('data/users/', '');
             },
             getSize: function() {
@@ -271,6 +281,9 @@
             }
 		},
 		methods: {
+            renderMarkdown: function(text) {
+                return md.render(text);
+            },
             getFileInfo: function() {
                 var self = this;
 
@@ -363,20 +376,47 @@
 
                         self.video = results[0];
 
-                        var vidPlayer = document.getElementById('vid');
-                        var existingSource = document.getElementById('vidsource');
+                        if (!self.asciicast) {
+                            var vidPlayer = document.getElementById('vid');
+                            var existingSource = document.getElementById('vidsource');
 
-                        if (existingSource && reloadVideo) {
-                            console.log("Source Exists");
-                            existingSource.src = self.video.video_file;
-                            vidPlayer.load();
+                            if (existingSource && reloadVideo) {
+                                console.log("Source Exists");
+                                existingSource.src = self.video.video_file;
+                                vidPlayer.load();
+                                vidPlayer.style.display = "block";
+                            }
+                            /*if (!self.player) {
+                                var plugins = {
+                                    'core': [Clappr.MediaControl, PlaybackRatePlugin],
+                                };
+
+                                if (self.video.vr) {
+                                    plugins["container"] = [ClapperVideo360];
+                                }
+
+                                self.player = new Clappr.Player({ 
+                                    source: self.video.video_file,
+                                    parentId: '#vid',
+                                    width: '100%',
+                                    //height: 'auto',
+                                    plugins: plugins,
+                                    baseUrl: './clappr' });
+                            }*//* else if (reloadVideo) {
+                                self.player.options.source = self.video.video_file;
+                                self.player.load();
+                            }*/
                         }
 
                         self.getFileInfo();
                         
-                        if (vidPlayer == null) console.log("Error: vidPlayer is null");
-                        self.player = new Plyr(vidPlayer, self.videoPlayerOptions);
-                        vidPlayer.style.display = "block";
+                        /*if (!self.asciicast) {
+                            if (vidPlayer == null) console.log("Error: vidPlayer is null");
+                            //self.player = new Plyr(vidPlayer, self.videoPlayerOptions);
+                            else self.player = videojs(vidPlayer, {}, function() {
+                                });
+                            vidPlayer.style.display = "block";
+                        }*/
 
                         if (getRelated) {
                             console.log("Get Related Videos")
@@ -425,14 +465,24 @@
                             LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
                             LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id`,
                     afterOrderBy: "date_added ASC",
-                    limit: 6
+                    limit: 11
                 });
 
                 console.log(query);
 
                 page.cmdp("dbQuery", [query])
                     .then((results) => {
-                        self.relatedVideos = results;
+                        var relatedVideos = [];
+                        console.log("Self Video: ", self.video);
+                        for (var result of results) {
+                            console.log(result);
+                            if (result.video_id == self.video.video_id && result.ref_channel_id == self.video.ref_channel_id && result.directory == self.video.directory) {
+                                continue;
+                            }
+                            
+                            relatedVideos.push(result);
+                        }
+                        self.relatedVideos = relatedVideos;
                     });
             },
             getDateFromNow: function(date_int) {
@@ -537,6 +587,7 @@
 
                 page.cmdp("optionalFilePin", [this.video.video_file.replace('merged-KxoVid/' + this.video.site + '/', ''), this.video.site])
                     .then(() => {
+                        //page.cmd("optionalFilePin", [this.video.video_file.replace('merged-KxoVid/' + this.video.site + '/', '') + ".piecemap.msgpack", this.video.site]);
                         self.getFileInfo();
                     });
             },

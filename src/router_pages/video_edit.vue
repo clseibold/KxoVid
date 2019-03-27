@@ -1,7 +1,7 @@
 <template>
 	<v-container fluid>
 		<v-container style="max-width: 700px;" v-if="userInfo && channel && video">
-            <div class="title" style="text-align: center; margin-bottom: 8px;">Edit Video: {{ channel.name }} > {{ video.title }}</div>
+            <div class="title" style="text-align: center; margin-bottom: 20px;">Edit Video: {{ channel.name }} > {{ video.title }}</div>
 
             <v-text-field v-model="title" label="Title"></v-text-field>
             <v-select v-model="selectedChannelId" :items="userChannelsSelect" label="Channel" single-line disabled></v-select>
@@ -10,7 +10,11 @@
 
             <v-select v-model="tags" label="Tags (enter to add tag)" chips tags></v-select>
             <v-checkbox v-model="original" label="Original?"></v-checkbox>
+
             <v-btn ripple small @click="saveVideo()">Update</v-btn>
+            <a :href="'./?/channel/settings/' + channel.channel_id" v-on:click.prevent="goto('channel/settings/' + channel.channel_id)">Channel Settings</a>
+            <span style="margin-left: 5px; margin-right: 5px;">|</span>
+            <a :href="'./?/channel/' + userInfo.auth_address + '/' + channel.channel_id + '/v/' + video_id" v-on:click.prevent="goto('channel/' + userInfo.auth_address + '/' + channel.channel_id + '/v/' + video_id)">View Video</a>
 		</v-container>
 	</v-container>
 </template>

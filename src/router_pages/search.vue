@@ -11,7 +11,9 @@
                         <small>Uploaded {{ getVideoDate(video) }} by {{ video.channel_name }}</small>
                         <v-divider :dark="content_dark" style="margin-top: 8px;"></v-divider>
                     </div>-->
-                    <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+                    <v-list two-line>
+                        <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="true" :show-category="true"></component>
+                    </v-list>
                 </v-flex>
                 <v-flex xs12 md3>
                     <div v-for="channel in channels">

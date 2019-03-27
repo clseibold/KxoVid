@@ -89,8 +89,8 @@
                         "date_added": date_added
                     });
                     return tableData;
-                }, function ({ id, auth_address }) {
-					Router.navigate('channel/' + auth_address + "/" + id);
+                }, function ({ date, auth_address }) {
+					Router.navigate('channel/' + auth_address + "/" + date);
                 });
             }
 		}

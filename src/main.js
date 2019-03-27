@@ -18,7 +18,8 @@ userChannelIndexMerger = "1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F";
 var MarkdownIt = require("markdown-it");
 md = new MarkdownIt({
 	html: false,
-	linkify: true
+	linkify: true,
+	breaks: true,
 });
 
 jdenticon = require("jdenticon");
@@ -29,7 +30,7 @@ jdenticon.config = {
 require('babel-polyfill');
 
 var ZeroFrame = require("./libs/ZeroFrame.js");
-var Router = require("./libs/router.js");
+Router = require("./libs/router.js");
 var searchDbQuery = require("./libs/search.js");
 
 var Vue = require("vue/dist/vue.min.js");
@@ -39,14 +40,15 @@ var Vue = require("vue/dist/vue.min.js");
 var Vuetify = require("vuetify");
 var VueZeroFrameRouter = require("./libs/vue-zeroframe-router.js");
 
-Plyr = require('plyr/dist/plyr.polyfilled.min.js');
-//var VuePlyr = require('vue-plyr');
+
+Clappr = require("clappr");
+PlaybackRatePlugin = require("clappr-playback-rate-plugin").default;
+ClapperVideo360 = require("clappr-video360");
 
 //var { sanitizeStringForUrl, sanitizeStringForUrl_SQL, html_substr, sanitizeHtmlForDb } = require("./util.js");
 
 Vue.use(VueZeroFrameRouter.VueZeroFrameRouter);
 Vue.use(Vuetify);
-//Vue.use(VuePlyr.default);
 
 // Vue Components
 var Navbar = require("./vue_components/navbar.vue");
@@ -242,17 +244,18 @@ var app = new Vue({
 				console.log("Subs Query: ", subsWhereQuery);
 
 				var query = `SELECT
-						videos.video_id as event_uri,
-						'article' as type,
-						videos.date_added as date_added,
-						channels.name || ': ' || videos.title as title,
-						videos.description as body,
-						'?/channel/' || REPLACE(videos_json.directory, 'data/users/', '') || '/' || videos.ref_channel_id || '/v/' || videos.video_id as url
+						REPLACE(videos_json.directory, 'data/usrs/', '') || '_' || videos.video_id AS event_uri,
+						'article' AS type,
+						videos.date_added AS date_added,
+						channels.name || ': ' || videos.title AS title,
+						videos.description AS body,
+						'?/channel/' || REPLACE(videos_json.directory, 'data/users/', '') || '/' || videos.ref_channel_id || '/v/' || videos.video_id AS url
 					FROM videos
-					LEFT JOIN json as videos_json USING (json_id)
-					LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
+					LEFT JOIN json AS videos_json USING (json_id)
+					LEFT JOIN json AS channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
 					LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id
 					WHERE ${subsWhereQuery}`;
+				console.log("Follow Query: ", query);
 				page.cmdp("feedFollow", [{"Subscriptions": [query, ""]}])
 					.then((result) => console.log("FeedFollow: ", result));
 
@@ -480,7 +483,7 @@ class ZeroApp extends ZeroFrame {
 	uploadBigFile(address, file, f = null) {
 		var date_added = Date.now();
         var orig_filename_list = file.name.split(".");
-        var filename = orig_filename_list[0].replace(/\s/g, "_").replace(/[^\x00-\x7F]/g, "").replace(/\'/g, "").replace(/\"/g, "").replace(/%20/g, "").replace(/\.([0-9]+)/g, "$1") + "-" + date_added + "." + orig_filename_list[orig_filename_list.length - 1];
+        var filename = orig_filename_list[0].replace(/\s/g, "_").replace(/[^\x00-\x7F]/g, "").replace(/\'/g, "").replace(/\"/g, "").replace(/%20/g, "").replace(/%/g, "").replace(/\.([0-9]+)/g, "$1").replace(/\\/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/[^a-zA-Z0-9\.\-_+]/g, '') + "-" + date_added + "." + orig_filename_list[orig_filename_list.length - 1];
 
         var f_path = "merged-KxoVid/" + address + "/data/users/" + page.siteInfo.auth_address + "/" + filename;
 
@@ -498,7 +501,7 @@ class ZeroApp extends ZeroFrame {
 					page.cmd("optionalFilePin", { "inner_path": f_path });
 					
                     page.cmd("wrapperNotification", ["info", "Upload finished!"]);
-                    if (f !== null && typeof f === "function") f(f_path.replace(/%/g, "").replace(/[^a-zA-Z0-9\/\.\-_+\\]/g, ''));
+                    if (f !== null && typeof f === "function") f(f_path);
                 });
                 req.withCredentials = true;
                 req.open("POST", init_res.url);

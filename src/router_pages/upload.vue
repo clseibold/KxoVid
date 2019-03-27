@@ -1,19 +1,32 @@
 <template>
 	<v-container fluid>
         <v-container style="max-width: 700px;" v-if="userInfo">
+            <div class="title" style="text-align: center; margin-bottom: 20px;">Upload Video</div>
+
+            <div v-if="userChannels.length > 0">
+                <v-text-field v-model="title" label="Title"></v-text-field>
+                <v-select v-model="selectedChannelId" :items="userChannelsSelect" label="Channel" single-line autocomplete></v-select>
+                <v-select v-model="selectedCategoryAddress" :items="categoriesSelect" label="Category" single-line autocomplete :hint="categoryHint" persistent-hint></v-select>
+                <v-text-field v-model="description" label="Description" multi-line></v-text-field>
+
+                <v-select v-model="tags" label="Tags (enter to add tag)" chips tags></v-select>
+                <v-checkbox v-model="original" label="Original?"></v-checkbox>
+                <v-checkbox v-model="vr" label="360 (VR) Video?"></v-checkbox>
+
+
+                <input class="file-input" ref="fileInput" type="file" accept="video/mp4,video/webm,video/ogg,.cast" id="fileUpload"><br>
+                <v-btn :loading="loading" ripple color="primary" @click="uploadVideo()">Upload</v-btn>
+            </div>
+            <div v-else>
+                <p>
+                    You must create at least one channel first before you can upload a video. <a href="./?/channel/create" v-on:click.prevent="goto('channel/create')">Create a channel here</a>.
+                </p>
+            </div>
+        </v-container>
+        <v-container v-if="!userInfo">
             <div class="title" style="text-align: center;">Upload Video</div>
 
-            <v-text-field v-model="title" label="Title"></v-text-field>
-            <v-select v-model="selectedChannelId" :items="userChannelsSelect" label="Channel" single-line autocomplete></v-select>
-            <v-select v-model="selectedCategoryAddress" :items="categoriesSelect" label="Category" single-line autocomplete></v-select>
-            <v-text-field v-model="description" label="Description" multi-line></v-text-field>
-
-            <v-select v-model="tags" label="Tags (enter to add tag)" chips tags></v-select>
-            <v-checkbox v-model="original" label="Original?"></v-checkbox>
-
-
-            <input class="file-input" ref="fileInput" type="file" accept="video/mp4,video/webm,video/ogg,.cast" id="fileUpload"><br>
-            <v-btn :loading="loading" ripple color="primary" @click="uploadVideo()">Upload</v-btn>
+            <p>You must be logged in to upload a video.</p>
         </v-container>
 	</v-container>
 </template>
@@ -31,11 +44,13 @@
                 description: "",
                 tags: [],
                 original: false,
+                vr: false,
                 userChannelsSelect: [],
                 selectedChannelId: null,
                 categoriesSelect: [],
                 selectedCategoryAddress: null,
-                loading: false
+                loading: false,
+                categoryHint: `Don't see desired category? Download more from the <a herf="./?/categories" onclick="Router.navigate('categories'); event.preventDefault();">Categories Page</a>`
 			};
 		},
 		beforeMount: function() {
@@ -180,6 +195,7 @@
                         "description": self.description,
                         "tags": self.tags.join("|"),
                         "original": self.original || false,
+                        "vr": self.vr || false,
                         "video_file": output_url,
                         "date_added": date
                     });
