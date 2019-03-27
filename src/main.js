@@ -241,10 +241,10 @@ var app = new Vue({
                     }
 				}
 				
-				console.log("Subs Query: ", subsWhereQuery);
+				//console.log("Subs Query: ", subsWhereQuery);
 
-				var query = `SELECT
-						REPLACE(videos_json.directory, 'data/usrs/', '') || '_' || videos.video_id AS event_uri,
+				var querySubs = `SELECT
+						'video_' || REPLACE(videos_json.directory, 'data/users/', '') || '_' || videos.video_id AS event_uri,
 						'article' AS type,
 						videos.date_added AS date_added,
 						channels.name || ': ' || videos.title AS title,
@@ -255,12 +255,28 @@ var app = new Vue({
 					LEFT JOIN json AS channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
 					LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id
 					WHERE ${subsWhereQuery}`;
-				console.log("Follow Query: ", query);
-				page.cmdp("feedFollow", [{"Subscriptions": [query, ""]}])
+
+				var queryCommentsOnVideos = `SELECT
+						'comment_' || REPLACE(comments_json.directory, 'data/users/', '') || '_' || comments.comment_id  AS event_uri,
+						'article' AS type,
+						comments.date_added AS date_added,
+						comments_json.cert_user_id || ' commented on your video' AS title,
+						comments.body AS body,
+						'?/channel/' || comments.ref_video_auth_address || '/' || comments.ref_channel_id || '/v/' || comments.ref_video_id AS url
+					FROM comments
+					LEFT JOIN json AS comments_json USING (json_id)
+					LEFT JOIN json AS videos_json ON videos_json.directory=('data/users/' || comments.ref_video_auth_address)
+					LEFT JOIN videos ON videos.video_id=comments.ref_video_id AND videos.ref_channel_id=comments.ref_channel_id
+					WHERE comments.ref_video_auth_address='${that.userInfo.auth_address}'`;
+
+					console.log(queryCommentsOnVideos);
+
+				//console.log("Follow Query: ", querySubs);
+				page.cmdp("feedFollow", [{"Subscriptions": [querySubs, ""], "CommentsOnVideos": [queryCommentsOnVideos, ""]}])
 					.then((result) => console.log("FeedFollow: ", result));
 
-				page.cmdp("dbQuery", [query])
-					.then((results) => console.log("Subs Results: ", results));
+				/*page.cmdp("dbQuery", [queryCommentsOnVideos])
+					.then((results) => console.log("Comments Results: ", results));*/
 
 				console.log("Keyvalue: ", that.userInfo.keyvalue);
 

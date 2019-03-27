@@ -55,7 +55,7 @@
                 <!-- Video -->
                 <v-flex xs12 md9>
                     <div v-if="!isCasting && !asciicast">
-                        <video v-if="!asciicast" ref="vid" id="vid" vjs-big-play-centered controls playsinline style="width: 100%; display: none;">
+                        <video v-if="!asciicast" ref="vid" id="vid" vjs-big-play-centered controls playsinline style="width: 100%; display: none;" preload="none">
                             <source id="vidsource" src="">
                         </video>
                     </div>
