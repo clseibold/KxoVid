@@ -8,7 +8,7 @@
 			<div class="title" style="margin-top: 10px; margin-bottom: 8px; text-align: center;">Contributors</div>
 			<p>Thanks to Ivanq/GitCenter, ZeroLSTN, Thunder, Glightstar, and DaniellMesquita for ideas, bug reports, testing, and helping out with the programming.</p>
 			<br>
-			<p><strong>Version:</strong> 0.5</p>
+			<p><strong>Version:</strong> 0.8</p>
         </v-container>
 	</v-container>
 </template>
