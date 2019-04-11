@@ -40,10 +40,11 @@ var Vue = require("vue/dist/vue.min.js");
 var Vuetify = require("vuetify");
 var VueZeroFrameRouter = require("./libs/vue-zeroframe-router.js");
 
+require("./libs/util.js");
 
-Clappr = require("clappr");
+/*Clappr = require("clappr");
 PlaybackRatePlugin = require("clappr-playback-rate-plugin").default;
-ClapperVideo360 = require("clappr-video360");
+ClapperVideo360 = require("clappr-video360");*/
 
 //var { sanitizeStringForUrl, sanitizeStringForUrl_SQL, html_substr, sanitizeHtmlForDb } = require("./util.js");
 
@@ -56,11 +57,11 @@ var NavDrawer = require("./vue_components/nav-drawer.vue");
 
 var app = new Vue({
 	el: "#app",
-	template: `<div><v-app :dark="theme == 'dark'">
-			<v-navigation-drawer app clipped fixed light width="225" hide-overlay v-model="drawer" :dark="theme == 'dark'" style="padding-bottom: 50px;">
+	template: `<div><v-app role="application" :dark="theme == 'dark'">
+			<v-navigation-drawer role="navigation" app clipped fixed light width="225" hide-overlay v-model="drawer" :dark="theme == 'dark'" style="padding-bottom: 50px;">
 				<component ref="nav_drawer" :is="nav_drawer" v-model="drawer" v-on:setcallback="setCallback" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :user-channels="userChannels" :lang-translation="langTranslation" :theme="theme"></component>
 			</v-navigation-drawer>
-			<component ref="navbar" :is="navbar" v-on:toggle-drawer="toggleDrawer" v-on:setcallback="setCallback" :theme="theme" :user-settings="userSettings" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :user-channels="userChannels" :lang-translation="langTranslation" v-on:startcasting="startCasting" v-on:stopcasting="stopCasting"></component>
+			<component ref="navbar" role="banner" :is="navbar" v-on:toggle-drawer="toggleDrawer" v-on:setcallback="setCallback" :theme="theme" :user-settings="userSettings" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :user-channels="userChannels" :lang-translation="langTranslation" v-on:startcasting="startCasting" v-on:stopcasting="stopCasting"></component>
 			<v-content>
 				<component ref="view" :is="currentView" v-on:setcallback="setCallback" v-on:get-user-info="getUserInfo()" :theme="theme" :getting-settings="gettingSettings" :user-settings="userSettings" v-on:setusersettings="setUserSettings" :casting-allowed="castingAllowed" :is-casting="isCasting" :cast-session="castSession" :user-info="userInfo" :site-info="siteInfo" :getting-user-info="gettingUserInfo" :user-channels="userChannels" :lang-translation="langTranslation" v-on:stopcasting="stopCasting"></component>
 			</v-content>
@@ -278,6 +279,12 @@ var app = new Vue({
 				/*page.cmdp("dbQuery", [queryCommentsOnVideos])
 					.then((results) => console.log("Comments Results: ", results));*/
 
+				page.cmd("mergerSiteList", [], function(sites) {
+					if(Object.keys(sites).indexOf("1GDLfuB3PTpbM8v4zFCwkBuVv6KHWamucQ") != -1) {
+						page.checkOptional("1GDLfuB3PTpbM8v4zFCwkBuVv6KHWamucQ", true, null);
+					}
+				});
+
 				console.log("Keyvalue: ", that.userInfo.keyvalue);
 
 				that.gettingUserInfo = false;
@@ -400,7 +407,7 @@ class ZeroApp extends ZeroFrame {
 
 				//app.callCallback("updateSiteInfo", siteInfo);
 				if(siteInfo.address!="14c5LUN73J7KKMznp9LvZWkxpZFWgE1sDz"&&!siteInfo.settings.own){self.cmdp("wrapperNotification",["warning","Note: This was cloned from another zite. You<br>\ncan find the original zite at this address:<br>\n 14c5LUN73J7KKMznp9LvZWkxpZFWgE1sDz."]);}
-				
+				printf(makeCurOptional(false, false, false, true, false, false, false, "cast"));
 			});
 	}
 
@@ -453,77 +460,11 @@ class ZeroApp extends ZeroFrame {
 	}
 
 	checkOptional(address, doSignPublish, f) {
-        if (!app.userInfo || !app.userInfo.cert_user_id) {
-            this.cmd("wrapperNotification", ["info", "Please login first."]);
-            //page.selectUser(); // TODO: Check if user has data, if not, show the registration modal.
-            return;
-        }
-
-        var data_inner_path = "merged-KxoVid/" + address + "/data/users/" + page.siteInfo.auth_address + "/data.json";
-        var content_inner_path = "merged-KxoVid/" + address + "/data/users/" + page.siteInfo.auth_address + "/content.json";
-
-        // Verify that user has correct "optional" and "ignore" values
-        page.cmd("fileGet", { "inner_path": content_inner_path, "required": false }, (data) => {
-            if (!data) data = {};
-            else data = JSON.parse(data);
-
-            var curoptional = ".+\\.(mp4|ogg|webm|cast)(.piecemap.msgpack)?";
-            var changed = false;
-            if (!data.hasOwnProperty("optional") || data.optional !== curoptional){
-                data["optional"] = curoptional
-                changed = true;
-            }
-
-            var json_raw = unescape(encodeURIComponent(JSON.stringify(data, undefined, "\t")));
-
-            if (changed) {
-                // Write (and Sign and Publish is doSignPublish)
-                page.cmd("fileWrite", [content_inner_path, btoa(json_raw)], (res) => {
-                    if (res === "ok") {
-                        if (f != null && typeof f === "function") f();
-                        if (doSignPublish) {
-                            page.cmd("siteSign", { "inner_path": content_inner_path }, () => {
-                                page.cmd("sitePublish", { "inner_path": content_inner_path, "sign": false });
-                            });
-                        }
-                    } else {
-                        page.cmd("wrapperNotification", ["error", "File write error: " + JSON.stringify(res)]);
-                    }
-                });
-            } else {
-                if (f != null && typeof f === "function") f();
-            }
-        });
+		checkOptional(this, "merged-KxoVid", address, page.siteInfo.auth_address, doSignPublish, f, makeCurOptional(false, false, false, true, false, false, false, "cast"));
     }
 
 	uploadBigFile(address, file, f = null) {
-		var date_added = Date.now();
-        var orig_filename_list = file.name.split(".");
-        var filename = orig_filename_list[0].replace(/\s/g, "_").replace(/[^\x00-\x7F]/g, "").replace(/\'/g, "").replace(/\"/g, "").replace(/%20/g, "").replace(/%/g, "").replace(/\.([0-9]+)/g, "$1").replace(/\\/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/[^a-zA-Z0-9\.\-_+]/g, '') + "-" + date_added + "." + orig_filename_list[orig_filename_list.length - 1];
-
-        var f_path = "merged-KxoVid/" + address + "/data/users/" + page.siteInfo.auth_address + "/" + filename;
-
-        page.checkOptional(address, false, () => {
-            page.cmd("bigfileUploadInit", [f_path, file.size], (init_res) => {
-                var formdata = new FormData();
-                formdata.append(file.name, file);
-
-                var req = new XMLHttpRequest();
-
-                req.upload.addEventListener("progress", console.log);
-                req.upload.addEventListener("loadend", () => {
-					console.log("Loadend");
-					// Pin file so it is excluded from the automatized optional file cleanup
-					page.cmd("optionalFilePin", { "inner_path": f_path });
-					
-                    page.cmd("wrapperNotification", ["info", "Upload finished!"]);
-                    if (f !== null && typeof f === "function") f(f_path);
-                });
-                req.withCredentials = true;
-                req.open("POST", init_res.url);
-                req.send(formdata);
-            });
-        });
+		uploadBigFile(this, "merged-KxoVid", address, page.siteInfo.auth_address, file, f, makeCurOptional(false, false, false, true, false, false, false, "cast"));
 	}
 
 	editTableData(mergerAddress, table, manageDataFunc, beforePublishCB = null) {
@@ -532,63 +473,11 @@ class ZeroApp extends ZeroFrame {
 		} else if (!Router.currentParams["topicaddress"] && !mergerAddress) {
 			return page.cmdp("wrapperNotification", ["error", "You must choose a topic to post to."]);
 		}
-	
-		var data_inner_path = "merged-KxoVid/" + mergerAddress + "/data/users/" + page.siteInfo.auth_address + "/data.json";
-		var content_inner_path = "merged-KxoVid/" + mergerAddress + "/data/users/" + page.siteInfo.auth_address + "/content.json";
-	
-		//var self = this;
-		return page.cmdp("fileGet", { "inner_path": data_inner_path, "required": false })
-			.then((data) => {
-				data = JSON.parse(data);
-				if (!data) {
-					data = {};
-				}
-	
-				if (!data[table]) data[table] = [];
-	
-				var date = Date.now();
-	
-				// date_added, data, tableData
-				data[table] = manageDataFunc(date, data, data[table]);
-	
-				if (data[table] == null) {
-					return { "err": "returned" };
-				}
-	
-				/*data["questions"].push({
-					"question_id": date,
-					"title": title,
-					"body": body,
-					"tags": tags,
-					"date_added": date
-				});*/
-	
-				var json_raw = unescape(encodeURIComponent(JSON.stringify(data, undefined, '\t')));
-	
-				return page.cmdp("fileWrite", [data_inner_path, btoa(json_raw)])
-					.then((res) => {
-						if (res === "ok") {
-							return page.cmdp("siteSign", { "inner_path": content_inner_path })
-								.then((res) => {
-									if (res === "ok") {
-										app.getUserInfo();
-										if (beforePublishCB != null && typeof beforePublishCB === "function") beforePublishCB({ "date": date, "auth_address": page.siteInfo.auth_address });
-										return page.cmdp("sitePublish", { "inner_path": content_inner_path, "sign": false })
-											.then(() => {
-												return { "date": date, "auth_address": page.siteInfo.auth_address };
-											}).catch((err) => {
-												console.log(err);
-												return { "date": date, "auth_address": page.siteInfo.auth_address, "err": err };
-											});
-									} else {
-										return page.cmdp("wrapperNotification", ["error", "Failed to sign user data."]);
-									}
-								});
-						} else {
-							return page.cmdp("wrapperNotification", ["error", "Failed to write to data file."]);
-						}
-					});
-			});
+
+		editTableData(this, "merged-KxoVid", mergerAddress, page.siteInfo.auth_address, table, manageDataFunc, () => {
+			app.getUserInfo();
+			beforePublishCB();
+		});
 	}
 
 	editData(mergerAddress, manageDataFunc, beforePublishCB = null) {
@@ -598,78 +487,35 @@ class ZeroApp extends ZeroFrame {
 			return page.cmdp("wrapperNotification", ["error", "You must choose a topic to post to."]);
 		}
 	
-		var data_inner_path = "merged-KxoVid/" + mergerAddress + "/data/users/" + page.siteInfo.auth_address + "/data.json";
-		var content_inner_path = "merged-KxoVid/" + mergerAddress + "/data/users/" + page.siteInfo.auth_address + "/content.json";
-	
-		//var self = this;
-		return page.cmdp("fileGet", { "inner_path": data_inner_path, "required": false })
-			.then((data) => {
-				data = JSON.parse(data);
-				if (!data) {
-					data = {};
-				}
-
-				var date = Date.now();
-				
-				data = manageDataFunc(data);
-
-				if (data == null) {
-					return { "err": "returned" };
-				}
-	
-				/*data["questions"].push({
-					"question_id": date,
-					"title": title,
-					"body": body,
-					"tags": tags,
-					"date_added": date
-				});*/
-	
-				var json_raw = unescape(encodeURIComponent(JSON.stringify(data, undefined, '\t')));
-	
-				return page.cmdp("fileWrite", [data_inner_path, btoa(json_raw)])
-					.then((res) => {
-						if (res === "ok") {
-							return page.cmdp("siteSign", { "inner_path": content_inner_path })
-								.then((res) => {
-									if (res === "ok") {
-										app.getUserInfo();
-										if (beforePublishCB != null && typeof beforePublishCB === "function") beforePublishCB({ "date": date, "auth_address": page.siteInfo.auth_address });
-										return page.cmdp("sitePublish", { "inner_path": content_inner_path, "sign": false })
-											.then(() => {
-												return { "date": date, "auth_address": page.siteInfo.auth_address };
-											}).catch((err) => {
-												console.log(err);
-												return { "date": date, "auth_address": page.siteInfo.auth_address, "err": err };
-											});
-									} else {
-										return page.cmdp("wrapperNotification", ["error", "Failed to sign user data."]);
-									}
-								});
-						} else {
-							return page.cmdp("wrapperNotification", ["error", "Failed to write to data file."]);
-						}
-					});
-			});
+		editData(this, "merged-KxoVid", mergerAddress, page.siteInfo.auth_address, manageDataFunc, () => {
+			app.getUserInfo();
+			beforePublishCB();
+		});
 	}
 }
 
 page = new ZeroApp();
 
 var Home = require("./router_pages/home.vue");
+
 var CreateChannel = require("./router_pages/create_channel.vue");
 var Channel = require("./router_pages/channel.vue");
 var ChannelSettings = require("./router_pages/channel_settings.vue");
+
 var Categories = require("./router_pages/categories.vue");
+var Category = require("./router_pages/category_channel.vue");
 var AddCategory = require("./router_pages/add_category.vue");
+
 var Upload = require("./router_pages/upload.vue");
 var Video = require("./router_pages/video.vue");
 var VideoEdit = require("./router_pages/video_edit.vue");
+
+var Playlist = require("./router_pages/playlist.vue");
+
 var Subscriptions = require("./router_pages/subscriptions.vue");
 var Search = require("./router_pages/search.vue");
 
-var Category = require("./router_pages/category_channel.vue");
-
+var Seedbox = require("./router_pages/seedbox.vue");
 var DeviceSettings = require("./router_pages/device_settings.vue");
 var SupportMe = require("./router_pages/support_me.vue");
 
@@ -677,6 +523,7 @@ VueZeroFrameRouter.VueZeroFrameRouter_Init(Router, app, [
 	{ route: "search/:searchquery", component: Search },
 	{ route: "search", component: Search },
 	{ route: "support-me", component: SupportMe },
+	{ route: "seedbox", component: Seedbox },
 	{ route: "device-settings", component: DeviceSettings },
 	{ route: "subscriptions", component: Subscriptions },
 	{ route: "upload", component: Upload },
@@ -686,6 +533,7 @@ VueZeroFrameRouter.VueZeroFrameRouter_Init(Router, app, [
 	{ route: "channel/create", component: CreateChannel },
 	{ route: "channel/settings/:id/v/:videoid", component: VideoEdit },
 	{ route: "channel/settings/:id", component: ChannelSettings },
+	{ route: "channel/:auth_address/:id/p/:playlistid", component: Playlist },
 	{ route: "channel/:auth_address/:id/v/:videoid", component: Video },
 	{ route: "channel/:auth_address/:id", component: Channel },
 	{ route: "", component: Home }

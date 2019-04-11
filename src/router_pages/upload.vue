@@ -1,15 +1,15 @@
 <template>
 	<v-container fluid>
-        <v-container style="max-width: 700px;" v-if="userInfo">
-            <div class="title" style="text-align: center; margin-bottom: 20px;">Upload Video</div>
+        <v-container role="main" aria-labelledby="title" style="max-width: 700px;" v-if="userInfo">
+            <div id="title" class="title" style="text-align: center; margin-bottom: 20px;">Upload Video</div>
 
-            <div v-if="userChannels.length > 0">
+            <div v-if="userChannels.length > 0" role="form">
                 <v-text-field v-model="title" label="Title"></v-text-field>
                 <v-select v-model="selectedChannelId" :items="userChannelsSelect" label="Channel" single-line autocomplete></v-select>
                 <v-select v-model="selectedCategoryAddress" :items="categoriesSelect" label="Category" single-line autocomplete :hint="categoryHint" persistent-hint></v-select>
                 <v-text-field v-model="description" label="Description" multi-line></v-text-field>
 
-                <v-select v-model="tags" label="Tags (enter to add tag)" chips tags></v-select>
+                <v-select v-model="tags" label="Tags (press enter to add tag)" chips tags></v-select>
                 <v-checkbox v-model="original" label="Original?"></v-checkbox>
                 <v-checkbox v-model="vr" label="360 (VR) Video?"></v-checkbox>
 
@@ -23,7 +23,7 @@
                 </p>
             </div>
         </v-container>
-        <v-container v-if="!userInfo">
+        <v-container role="main" aria-label="User must be logged in" v-if="!userInfo">
             <div class="title" style="text-align: center;">Upload Video</div>
 
             <p>You must be logged in to upload a video.</p>

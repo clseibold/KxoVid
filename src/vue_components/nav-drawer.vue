@@ -103,6 +103,9 @@
         </div>
 
         <v-divider style="margin-top: 12px; margin-bottom: 12px;"></v-divider>
+        <v-list-tile :class="{ 'menu-item-active': routerIsActive('seedbox') }" href="./?/seedbox" @click.prevent="goto('seedbox')">
+            <v-list-tile-title>SeedBox</v-list-tile-title>
+        </v-list-tile>
         <v-list-tile :class="{ 'menu-item-active': routerIsActive('device-settings') }" href="./?/device-settings" @click.prevent="goto('device-settings')">
             <v-list-tile-title>Device Settings</v-list-tile-title>
         </v-list-tile>

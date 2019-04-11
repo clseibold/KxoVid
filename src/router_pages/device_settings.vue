@@ -17,7 +17,7 @@
 
 	module.exports = {
 		props: ["userSettings", "userInfo", "langTranslation"],
-		name: "home",
+		name: "device-settings",
 		data: () => {
 			return {
                 channels: [],

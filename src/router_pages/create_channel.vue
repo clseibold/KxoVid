@@ -1,13 +1,15 @@
 <template>
 	<v-container fluid>
-		<v-container style="max-width: 700px;" v-if="userInfo">
-			<div class="title" style="text-align: center;">Create Channel for {{ userInfo.cert_user_id }}</div>
+		<v-container role="main" aria-labelledby="title" style="max-width: 700px;" v-if="userInfo">
+			<div id="title" class="title" style="text-align: center;">Create Channel for {{ userInfo.cert_user_id }}</div>
             <br>
-            <v-text-field label="Name" v-model="name"></v-text-field>
-            <v-text-field multi-line label="About" v-model="about"></v-text-field>
-			<v-select label="Toolbar Color" :items="toolbar_colors" v-model="toolbar_color"></v-select>
-			<v-select label="Background Color" :items="background_colors" v-model="background_color"></v-select>
-            <v-btn ripple color="primary" @click="createChannel()">Create</v-btn>
+            <div role="form">
+	            <v-text-field label="Name" v-model="name"></v-text-field>
+	            <v-text-field multi-line label="About" v-model="about"></v-text-field>
+				<v-select label="Toolbar Color" :items="toolbar_colors" v-model="toolbar_color"></v-select>
+				<v-select label="Background Color" :items="background_colors" v-model="background_color"></v-select>
+	            <v-btn ripple color="primary" @click="createChannel()">Create</v-btn>
+	        </div>
 		</v-container>
 	</v-container>
 </template>

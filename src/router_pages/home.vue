@@ -1,7 +1,7 @@
 <template>
 	<v-container fluid v-if="!gettingSettings" class="pa-0">
-		<v-container style="max-width: 700px;" v-if="!userSettings.introductionFinished">
-			<div class="headline" style="text-align: center; margin-bottom: 8px;">Welcome to KxoVid!</div>
+		<v-container role="main" aria-labelledby="welcome" style="max-width: 700px;" v-if="!userSettings.introductionFinished">
+			<div id="welcome" class="headline" style="text-align: center; margin-bottom: 8px;">Welcome to KxoVid!</div>
 			<div class="subheading" style="margin-bottom: 4px;">KxoVid is a video sharing zite for ZeroNet, much like YouTube. Below is a brief guide on how KxoVid works and some of its features.</div>
 			<v-divider style="margin-top: 8px; margin-bottom: 12px;"></v-divider>
 
@@ -19,14 +19,22 @@
 
 			<div class="title" style="margin-bottom: 4px;">Google Cast Support</div>
 			<div class="subheading" style="margin-bottom: 4px;">KxoVid is currently the <em>only</em> ZeroNet zite with Google Cast support. This allows you to cast videos to any Google Cast supported device within your network, including Google Homes and Chromecasts. For this to work, a Google JS Script must be downloaded from the clearnet. But <em>don't worry</em>, this file is <em>never</em> automatically downloaded unless you want it to. When you click the chromecast icon in the navigation bar, you are prompted to download this file for the current session. Afterwards, you are prompted on whether you want it automatically downloaded whenever you load this zite.</div>
-			<div class="subheading">Casting works by sending the url of the file to the cast-supported device so that it can stream the file. However, this requires that a proxy or zeronet server be used. By default, KxoVid uses the <a href="https://0net.io/">0net.io</a> proxy. However, you can change this setting in the "Device Settings" page listed in the sidebar. If you want to use your own zeronet server, you must make sure the ZeroNet UI Server allows connections from your local network and that it uses the ip of the computer it's running on.</div>
+			<div class="subheading">Casting works by sending the url of the file to the cast-supported device so that it can stream the file. However, this requires that a proxy or zeronet server be used. By default, KxoVid uses the <a href="https://0net.io/">0net.io</a> proxy. However, you can change this setting in the <a href="./?/device-settings" v-on:click.prevent="goto('device-settings')">Device Settings</a> page listed in the sidebar. If you want to use your own zeronet server, you must make sure the ZeroNet UI Server allows connections from your local network and that it uses the ip of the computer it's running on.</div>
+			<v-divider style="margin-top: 8px; margin-bottom: 12px;"></v-divider>
+
+			<div class="title" style="margin-bottom: 4px;">Channel Playlists</div>
+			<div class="subheading">
+				Channels can create playlists for their videos. You can see the playlists on a channel by clicking the playlists tab.
+			</div>
 			<v-divider style="margin-top: 8px; margin-bottom: 12px;"></v-divider>
 			
-			<v-btn color="primary" @click="login()">Sign In</v-btn>
+			<v-btn color="primary" @click="login()">Sign In with ZeroId or KxoId</v-btn>
 			<v-btn @click="register()">Register a KxoId</v-btn>
 			<a href="./?/categories" @click.prevent="gotoCategories()">View Categories Index</a>
+			<br>
+			<a href="./?/" @click.prevent="continueToHome()">Continue to homepage</a>
 		</v-container>
-		<v-container v-else grid-list-xl class="hidden-sm-and-down">
+		<v-container role="main" aria-label="Homepage" v-else grid-list-xl class="hidden-sm-and-down">
 			<v-layout row wrap>
 				<v-flex xs12 sm4 md5 v-if="userInfo"> <!-- Recent Videos from Subscriptions -->
 					<div class="title" style="text-align: center; margin-bottom: 20px; font-weight: 600;">Recent Videos from Subscriptions</div>
@@ -38,7 +46,7 @@
 							</p>
 						</v-list-tile>
 					</v-list>
-					<a href="'./?/subscriptions'" @click.prevent="goto('subscriptions')" v-if="recentSubVideos.length > 0">View All</a>
+					<a href="./?/subscriptions" @click.prevent="goto('subscriptions')" v-if="recentSubVideos.length > 0">View All</a>
 				</v-flex>
 				<v-flex xs12 sm2 md2 v-if="!userInfo">
 				</v-flex>
@@ -54,7 +62,7 @@
 							</p>
 						</v-list-tile>
 					</v-list>
-					<a href="'./?/search'" @click.prevent="goto('search')" v-if="recentVideos.length > 0">View All</a>
+					<a href="./?/search" @click.prevent="goto('search')" v-if="recentVideos.length > 0">View All</a>
 				</v-flex>
 				<v-flex xs12 sm4 md2> <!-- New Channels -->
 					<div class="title" style="text-align: center; margin-bottom: 20px; font-weight: 600;">New Channels</div>
@@ -73,11 +81,11 @@
 							<v-divider v-bind:key="channel.channel_id + ',' + channel.directory"></v-divider>
 						</template>
 					</v-list>
-					<a href="'./?/search'" @click.prevent="goto('search')" v-if="recentChannels.length > 0" style="text-align: right;">View All</a>
+					<a href="./?/search" @click.prevent="goto('search')" v-if="recentChannels.length > 0" style="text-align: right;">View All</a>
 				</v-flex>
 			</v-layout>
 		</v-container>
-		<v-container v-if="userSettings.introductionFinished" class="hidden-md-and-up pa-0">
+		<v-container role="main" aria-label="Homepage for mobile" v-if="userSettings.introductionFinished" class="hidden-md-and-up pa-0">
 			<v-list two-line subheader>
 				<div v-if="userInfo">
 					<v-subheader style="font-weight: 600;">Recent Videos from Subscriptions</v-subheader>
@@ -259,6 +267,10 @@
 				this.$emit("setusersettings", { allowCasting: this.userSettings.allowCasting, castingServer: this.userSettings.castingServer, introductionFinished: true });
 				page.cmdp("userSetSettings", [{ allowCasting: this.userSettings.allowCasting, castingServer: this.userSettings.castingServer, introductionFinished: true }]);
 				Router.navigate('categories');
+			},
+			continueToHome: function() {
+				this.$emit("setusersettings", { allowCasting: this.userSettings.allowCasting, castingServer: this.userSettings.castingServer, introductionFinished: true });
+				page.cmdp("userSetSettings", [{ allowCasting: this.userSettings.allowCasting, castingServer: this.userSettings.castingServer, introductionFinished: true }]);
 			},
 			register: function() {
 				page.cmdp("wrapperOpenWindow", ["/1GTVetvjTEriCMzKzWSP9FahYoMPy6BG1P/?/create-id"]);

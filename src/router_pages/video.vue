@@ -55,7 +55,7 @@
                 <!-- Video -->
                 <v-flex xs12 md9>
                     <div v-if="!isCasting && !asciicast">
-                        <video v-if="!asciicast" ref="vid" id="vid" vjs-big-play-centered controls playsinline style="width: 100%; display: none;" preload="none">
+                        <video v-if="!asciicast" ref="vid" id="vid" vjs-big-play-centered controls playsinline style="width: 100%; display: none;" preload="metadata">
                             <source id="vidsource" src="">
                         </video>
                     </div>
@@ -76,7 +76,8 @@
                         <div class="title" style="margin-bottom: 15px;">{{video.title}}</div>
                         <p class="body-1" v-if="video" v-html="descriptionMarkdown"></p>
                         <small>
-                            Uploaded {{ getDateFromNow(video.date_added) }}
+                            Uploaded {{ getDateFromNow(video.date_added) }}<br>
+                            <a :href="'./?/category/' + video.site" v-on:click.prevent="goto('category/' + video.site)">{{ video.category_name }}</a>
                         </small>
                         <div>
                             <v-chip :class="{ 'grey darken-3 white--text' : content_dark }" v-if="video.original">Original</v-chip>
@@ -86,6 +87,8 @@
                             <v-btn small @click="pinVideo()" v-if="fileInfo.is_pinned == 0">Seed</v-btn>
                             <v-btn small @click="unpinVideo()" v-else>Stop Seeding</v-btn>
                             <span>{{ (typeof fileInfo.peer_seed) != undefined && fileInfo.peer_seed != null ? fileInfo.peer_seed + " / " : "" }} {{ fileInfo.peer }} peers<br>({{ getSize }})</span>
+                            <br>
+                            <a href="#" v-on:click.prevent="deleteVideo()" v-if="!isOwner">Delete from Device</a>
                         </div>
                     </div>
                 </v-flex>
@@ -200,6 +203,7 @@
             this.id = Router.currentParams["id"];
             this.video_id = Router.currentParams["videoid"];
 
+            // Get Channel
             page.cmdp("dbQuery", ["SELECT * FROM channels LEFT JOIN json USING (json_id) WHERE channel_id=" + this.id + " AND directory=\"data/users/" + this.auth_address + "\" LIMIT 1"])
                 .then((results) => {
                     self.channel = results[0];
@@ -365,7 +369,12 @@
             },
             getVideo: function(getRelated = false, reloadVideo = false) {
                 var self = this;
-                var query = "SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.auth_address + "\" AND ref_channel_id=" + this.id + " AND video_id=" + this.video_id + " LIMIT 1";
+                var query = `SELECT *, category_hubs.name AS category_name FROM videos
+                    LEFT JOIN json USING (json_id)
+                    LEFT JOIN category_hubs ON json.site=category_hubs.address
+                    WHERE directory='data/users/${this.auth_address}' AND ref_channel_id=${this.id} AND video_id=${this.video_id}
+                    LIMIT 1`;
+                //var query = "SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.auth_address + "\" AND ref_channel_id=" + this.id + " AND video_id=" + this.video_id + " LIMIT 1";
                 console.log(query);
 
                 page.cmdp("dbQuery", [query])
@@ -510,6 +519,10 @@
 			gotoLink: function(to) {
 				console.log(to);
 				window.location = to;
+            },
+            deleteVideo: function() {
+                page.cmdp("optionalFileDelete", {"inner_path": this.fileInfo.inner_path, "address": this.fileInfo.address});
+                window.history.back();
             },
             subscribe: function() {
                 if (!this.isLoggedIn) return;

@@ -203,7 +203,10 @@
 		},
 		methods: {
             determineSubscriptionStatus: function() {
-                if (!this.userInfo) return;
+                if (!this.userInfo || !this.userInfo.keyvalue || !this.userInfo.keyvalue.subscriptions) {
+                    this.subscribed = false;
+                    return;
+                }
 
                 if (this.userInfo.keyvalue.subscriptions.indexOf(this.address + ",cat") != -1) {
                     this.subscribed = true;

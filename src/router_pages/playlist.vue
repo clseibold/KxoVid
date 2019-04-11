@@ -1,14 +1,14 @@
 <template>
 	<v-container fluid v-if="channel" style="padding: 0; height: 100%;" :class="getBackground">
         <v-container style="margin: 0; padding: 0;" fluid>
-            <v-toolbar :dark="toolbar_dark" flat dense prominent extended :color="channel.toolbar_color || ''">
+            <v-toolbar :dark="toolbar_dark" flat dense :color="channel.toolbar_color || ''">
                 <!--<div style="max-width: 900px; margin-top: 0; margin-bottom: 0; margin-left: auto; margin-right: auto; padding: 0;">-->
                 <v-layout row style="max-width: 900px; margin-left: auto; margin-right: auto;">
                     <v-toolbar-title>
                         <v-avatar tile><!-- 80 -->
                             <svg v-bind:data-jdenticon-value="auth_address + '-' + id"></svg>
                         </v-avatar>
-                        {{ channel.name }}
+                        <span @click="goto('channel/' + auth_address + '/' + id)" style="cursor: pointer;">{{ channel.name }}</span>
                         <em style="font-weight: normal; font-size: .7em;">({{ channel.cert_user_id }})</em>
                     </v-toolbar-title>
                     <v-spacer></v-spacer>
@@ -30,80 +30,39 @@
                         </v-btn>
                         <span>Unsubscribe</span>
                     </v-tooltip>
-                    <div v-if="isLoggedIn && userInfo.auth_address == auth_address">
+                    <div v-if="isLoggedIn && userInfo.auth_address == auth_address"> <!-- Edit Playlist - TODO -->
                         <v-tooltip bottom>
                             <v-btn slot="activator" icon @click="goto('channel/settings/' + channel.channel_id)">
                                 <v-icon>edit</v-icon>
                             </v-btn>
-                            <span>Edit Channel</span>
+                            <span>Edit Playlist</span>
                         </v-tooltip>
                     </div>
                 </v-layout>
-                <v-layout row slot="extension" class="grey darken-3">
+                <!--<v-layout row slot="extension" class="grey darken-3">
                     <v-tabs show-arrows dark centered v-model="currentTab" style="max-width: 900px; margin-left: auto; margin-right: auto;">
                         <v-tab key="overview" ripple>Overview</v-tab>
                         <v-tab key="videos" ripple>Videos</v-tab>
                         <v-tab key="playlists" ripple>Playlists</v-tab>
-                        <!--<v-tab>Discussion</v-tab>-->
+                        <v-tab>Discussion</v-tab>
                     </v-tabs>
-                </v-layout>
+                </v-layout>-->
                 <!--</div>-->
             </v-toolbar>
         </v-container>
-		<v-container style="max-width: 900px;" grid-list-xl>
-            <v-tabs-items v-model="currentTab">
-                <!-- Overview Tab -->
-                <v-tab-item key="overview">
-                    <v-layout row wrap fill-height>
-                        <v-flex xs12 sm8>
-                            <div class="title" style="margin-bottom: 20px;">Recent Videos</div>
-                            <v-list :dark="content_dark" :light="content_light" two-line>
-                                <component :is="videoListItem" v-for="video in recent_videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false" :show-category="true"></component>
-                                <v-list-tile v-if="recent_videos.length <= 0" style="margin-top: 16px;">
-                                    <p>
-                                        Looks like there are no videos! Remember that this page will only list videos <em>in categories that you have downloaded. Go to the <a href="./?/categories" v-on:click.prevent="goto('categories')">Categories page</a> to download more.</em>
-                                    </p>
-                                </v-list-tile>
-                            </v-list>
-                        </v-flex>
-                        <v-flex xs12 sm4>
-                            <div class="title" style="text-align: center; margin-bottom: 20px;">About</div>
-                            <p style="text-align: center;">{{ channel.about }}</p>
-                        </v-flex>
-                    </v-layout>
-                </v-tab-item>
-                <!-- Videos Tab -->
-                <v-tab-item key="videos">
-                    <v-container style="max-width: 700px;">
-                        <v-list :dark="content_dark" :light="content_light" two-line>
-                            <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false" :show-category="true"></component>
-                            <v-list-tile v-if="videos.length <= 0" style="margin-top: 16px;">
-                                <p>
-                                    Looks like there are no videos! Remember that this page will only list videos <em>in categories that you have downloaded. Go to the <a href="./?/categories" v-on:click.prevent="goto('categories')">Categories page</a> to download more.</em>
-                                </p>
-                            </v-list-tile>
-                        </v-list>
-                    </v-container>
-                </v-tab-item>
-                <!-- Playlists -->
-                <v-tab-item key="playlists">
-                    <v-container style="max-width: 700px;">
-                        <v-list :dark="content_dark" :light="content_light">
-                            <template v-for="playlist in playlists">
-                                <v-list-tile @click.prevent="goto('channel/' + auth_address + '/' + id + '/p/' + playlist.playlist_id)">
-                                    <v-list-tile-title>{{ playlist.name }}</v-list-tile-title>
-                                </v-list-tile>
-                                <v-divider></v-divider>
-                            </template>
-                            <v-list-tile v-if="playlists.length <= 0" style="margin-top: 16px;">
-                                <p>
-                                    Looks like there are no playlists!
-                                </p>
-                            </v-list-tile>
-                        </v-list>
-                    </v-container>
-                </v-tab-item>
-            </v-tabs-items>
+		<v-container style="max-width: 900px;" grid-list-xl v-if="playlist">
+            <div class="title" style="text-align: center; margin-bottom: 20px;">Playlist: {{ playlist.name }}</div>
+            <!-- Videos -->
+            <v-container style="max-width: 700px;">
+                <v-list :dark="content_dark" :light="content_light" two-line>
+                    <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false" :show-category="true"></component>
+                    <v-list-tile v-if="videos.length <= 0" style="margin-top: 16px;">
+                        <p>
+                            Looks like there are no videos! Remember that this page will only list videos the user has uploaded <em>in categories that you have merged/downloaded.</em>
+                        </p>
+                    </v-list-tile>
+                </v-list>
+            </v-container>
 		</v-container>
 	</v-container>
 </template>
@@ -127,12 +86,11 @@
 			return {
                 auth_address: "",
                 id: "",
+                playlistid: "",
                 channel: null,
                 subscribed: false,
-                recent_videos: [],
                 videos: [],
-                playlists: [],
-                currentTab: 0,
+                playlist: null,
                 videoListItem: video_list_item
 			};
 		},
@@ -146,13 +104,13 @@
 
             this.channel = null;
             this.subscribed = false;
-            this.recent_videos = [];
             this.videos = [];
-            this.playlists = [];
+            this.playlist = null;
             this.currentTab = 0;
             
             this.auth_address = Router.currentParams["auth_address"];
             this.id = Router.currentParams["id"];
+            this.playlistid = Router.currentParams["playlistid"];
 
             page.cmdp("dbQuery", ["SELECT * FROM channels LEFT JOIN json USING (json_id) WHERE channel_id=" + this.id + " AND directory=\"data/users/" + this.auth_address + "\" LIMIT 1"])
                 .then((results) => {
@@ -160,16 +118,14 @@
                 });
 
             this.determineSubscriptionStatus();
-            this.getRecentVideos();
+            this.getPlaylist();
             this.getVideos();
-            this.getPlaylists();
 
 			this.$emit("setcallback", "update", function(userInfo) {
                 //self.userInfo = userInfo;
                 self.determineSubscriptionStatus();
-                self.getRecentVideos();
+                self.getPlaylist();
                 self.getVideos();
-                self.getPlaylists();
 			});
 		},
 		mounted: function() {
@@ -211,10 +167,7 @@
 		},
 		methods: {
             determineSubscriptionStatus: function() {
-                if (!this.userInfo || !this.userInfo.keyvalue || !this.userInfo.keyvalue.subscriptions) {
-                    this.subscribed = false;
-                    return;
-                }
+                if (!this.userInfo) return;
 
                 if (this.userInfo.keyvalue.subscriptions.indexOf(this.auth_address + "," + this.id) != -1) {
                     this.subscribed = true;
@@ -222,38 +175,30 @@
                     this.subscribed = false;
                 }
             },
-            getRecentVideos: function() {
+            getPlaylist: function() {
                 var self = this;
-
-                page.cmdp("dbQuery", ["SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.auth_address + "\" AND ref_channel_id=" + this.id + " ORDER BY date_added DESC LIMIT 8"])
+                var query = `SELECT * FROM channel_playlists
+                    LEFT JOIN json USING (json_id)
+                    WHERE directory="data/users/${this.auth_address}"
+                        AND ref_channel_id=${this.id}
+                        AND playlist_id=${this.playlistid}`;
+                page.cmdp("dbQuery", [query])
                     .then((results) => {
-                        console.log(results);
-                        self.recent_videos = results;
+                        self.playlist = results[0];
                     });
             },
             getVideos: function() {
                 var self = this;
-
-                page.cmdp("dbQuery", ["SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.auth_address + "\" AND ref_channel_id=" + this.id + " ORDER BY date_added DESC"])
-                    .then((results) => {
-                        self.videos = results;
-                    });
-            },
-            getVideoDate: function(video) {
-                return moment(video.date_added).fromNow();
-            },
-            getPlaylists: function() {
-                //if (this.userInfo == null || this.userInfo.auth_address == null) return;
-
-                var self = this;
-                var query = `SELECT * FROM channel_playlists
+                var query = `SELECT * FROM videos
                     LEFT JOIN json USING (json_id)
-                    WHERE ref_channel_id=${this.id} AND directory='data/users/${this.auth_address}'
-                    ORDER BY date_added DESC`;
+                    WHERE directory="data/users/${this.auth_address}" 
+                        AND ref_channel_id=${this.id}
+                        AND channel_playlists LIKE '%${this.playlistid}%'`;
+
                 page.cmdp("dbQuery", [query])
                     .then((results) => {
-                        self.playlists = results;
-                    });
+                        self.videos = results;
+                    })
             },
 			getCors: function(address, callback = null) {
 				console.log("Test");

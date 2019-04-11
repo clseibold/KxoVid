@@ -42,7 +42,7 @@
                 ["json_id", "INTEGER REFERENCES json (json_id)"]
             ],
             "indexes": ["CREATE UNIQUE INDEX video_index ON videos(json_id, video_id)", "CREATE INDEX video_id_ref_title ON videos(video_id, ref_channel_id, title)"],
-            "schema_changed": 13
+            "schema_changed": 14
         },
         "comments": {
             "cols": [
@@ -92,7 +92,7 @@
                 ["json_id", "INTEGER REFERENCES json(json_id)"]
             ],
             "indexes": ["CREATE UNIQUE INDEX channel_playlists_index ON channel_playlists(json_id, playlist_id)"],
-            "schema_changed": 3
+            "schema_changed": 4
         },
         "moderated_comments": {
             "cols": [

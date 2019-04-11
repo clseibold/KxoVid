@@ -5,7 +5,7 @@
 		<v-spacer class="hidden-md-and-down">
 			<div style="width: 350px; margin: auto;">
 				<!--<v-spacer class="hidden-md-and-down"></v-spacer>-->
-				<v-text-field :dark="theme == 'dark'" class="hidden-md-and-down" solo flat light hide-details placeholder="Search" v-model="search" :value="search" @keypress.enter="goto('search/' + search)" prepend-icon="search"></v-text-field>
+				<v-text-field role="search" :dark="theme == 'dark'" class="hidden-md-and-down" solo flat light hide-details placeholder="Search" v-model="search" :value="search" @keypress.enter="goto('search/' + search)" prepend-icon="search"></v-text-field>
 				<!--<v-spacer></v-spacer>-->
 			</div>
 		</v-spacer>
@@ -80,6 +80,7 @@
 					<v-divider style="margin-top: 12px; margin-bottom: 12px;"></v-divider>
 					<!--<v-list-tile @click="goto('profile')"><v-list-tile-title>Profile</v-list-tile-title></v-list-tile>
 					<v-list-tile @click="goto('settings')"><v-list-tile-title>Settings</v-list-tile-title></v-list-tile>-->
+					<v-list-tile href="./?/seedbox" @click.prevent="goto('seedbox')"><v-list-tile-title>Seedbox</v-list-tile-title></v-list-tile>
 					<v-list-tile href="./?/device-settings" @click.prevent="goto('device-settings')"><v-list-tile-title>Device Settings</v-list-tile-title></v-list-tile>
 					<v-list-tile href="#" @click.prevent="signout()"><v-list-tile-title>Signout</v-list-tile-title></v-list-tile>
 				</v-list>

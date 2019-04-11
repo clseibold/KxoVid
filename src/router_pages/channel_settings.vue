@@ -1,7 +1,49 @@
 <template>
-	<v-container fluid>
+	<v-container fluid style="padding: 0;">
+        <v-container style="margin: 0; padding: 0;" fluid v-if="channel">
+            <v-toolbar :dark="toolbar_dark" flat dense :color="channel.toolbar_color || ''">
+                <!--<div style="max-width: 900px; margin-top: 0; margin-bottom: 0; margin-left: auto; margin-right: auto; padding: 0;">-->
+                <v-layout row style="max-width: 900px; margin-left: auto; margin-right: auto;">
+                    <v-menu bottom>
+                        <v-toolbar-title slot="activator">
+                            <v-avatar tile><!-- 80 -->
+                                <svg v-bind:data-jdenticon-value="auth_address + '-' + id"></svg>
+                            </v-avatar>
+                            Settings: {{ channel.name }}
+                            <v-icon :dark="toolbar_dark">arrow_drop_down</v-icon>
+                            <!--<em style="font-weight: normal; font-size: .7em;">({{ channel.cert_user_id }})</em>-->
+                        </v-toolbar-title>
+                        <v-list>
+                            <template v-for="channel in userChannels">
+                                <v-list-tile @click="goto('channel/settings/' + channel.channel_id)" :key="channel.channel_id">
+                                    <v-list-tile-content>
+                                        <v-list-tile-title>{{ channel.name }}</v-list-tile-title>
+                                    </v-list-tile-content>
+                                </v-list-tile>
+                            </template>
+                        </v-list>
+                    </v-menu>
+                    <v-spacer></v-spacer>
+                    <!--<v-tooltip bottom>
+                        <v-btn slot="activator" icon>
+                            <v-icon>search</v-icon>
+                        </v-btn>
+                        <span>Search Channel</span>
+                    </v-tooltip>-->
+                </v-layout>
+                <!--<v-layout row slot="extension" class="grey darken-3">
+                    <v-tabs show-arrows dark centered style="max-width: 900px; margin-left: auto; margin-right: auto;">
+                        <v-tab>Overview</v-tab>
+                        <v-tab>Videos</v-tab>
+                        <v-tab>Playlists</v-tab>
+                        <v-tab>Discussion</v-tab>
+                    </v-tabs>
+                </v-layout>-->
+                <!--</div>-->
+            </v-toolbar>
+        </v-container>
 		<v-container style="max-width: 700px;" v-if="userInfo && channel">
-            <div class="title" style="text-align: center; margin-bottom: 20px;">Channel Settings: {{ channel.name }}</div>
+            <!--<div class="title" style="text-align: center; margin-bottom: 20px;">Channel Settings: {{ channel.name }}</div>-->
 
             <v-tabs show-arrows :dark="theme == 'dark'" centered v-model="currentTab" style="max-width: 900px; margin-left: auto; margin-right: auto; margin-bottom: 8px;">
                 <v-tab key="general" ripple>General</v-tab>
@@ -22,19 +64,72 @@
                     <a :href="'./?/channel/' + userInfo.auth_address + '/' + channel.channel_id" v-on:click.prevent="goto('channel/' + userInfo.auth_address + '/' + channel.channel_id)">View Channel</a>
                 </v-tab-item>
                 <v-tab-item key="videos">
-                    <v-list two-line>
+
+                    <v-list style="margin-bottom: 8px;">
+                        <template v-for="video in videos">
+                            <v-list-group :key="video.video_id">
+                                <v-list-tile slot="activator" ripple>
+                                    <v-list-tile-content>
+                                        <v-list-tile-title>{{ video.title || "[Untitled]" }}</v-list-tile-title>
+                                    </v-list-tile-content>
+                                </v-list-tile>
+                                <v-list-tile ripple @click="goto('channel/' + userInfo.auth_address + '/' + id + '/v/' + video.video_id)">
+                                    <v-list-tile-content>
+                                        <v-list-tile-title><em>View</em></v-list-tile-title>
+                                    </v-list-tile-content>
+                                </v-list-tile>
+                                <v-list-tile ripple @click="goto('channel/settings/' + id + '/v/' + video.video_id)">
+                                    <v-list-tile-content>
+                                        <v-list-tile-title><em>Edit</em></v-list-tile-title>
+                                    </v-list-tile-content>
+                                </v-list-tile>
+                                <v-list-tile ripple @click="deleteVideo(video)">
+                                    <v-list-tile-content>
+                                        <v-list-tile-title><em>Delete</em></v-list-tile-title>
+                                    </v-list-tile-content>
+                                </v-list-tile>
+                            </v-list-group>
+                            <v-divider v-if="videos[videos.length - 1] != playlist" :key="video.video_id"></v-divider>
+                        </template>
+                    </v-list>
+
+                    <!--<v-list two-line>
                         <component :is="videoListItem" v-for="video in videos" :key="video.video_id + '-' + video.directory" :video="video" :show-channel="false" :show-category="true" :edit="true"></component>
                         <v-list-tile v-if="videos.length <= 0" style="margin-top: 16px;">
                             <p>
                                 Looks like there are no videos! <span v-if="isLoggedIn"><a href="./?/upload" v-on:click.prevent="goto('upload')">Upload some here!</a></span>
                             </p>
                         </v-list-tile>
-                    </v-list>
+                    </v-list>-->
                 </v-tab-item>
                 <v-tab-item key="playlists">
-                    <div v-for="playlist in playlists" style="margin-bottom: 8px;">
+                    <v-list style="margin-bottom: 8px;">
+                        <template v-for="playlist in playlists">
+                            <v-list-group :key="playlist.playlist_id">
+                                <v-list-tile slot="activator" ripple>
+                                    <v-list-tile-content>
+                                        <v-list-tile-title>{{ playlist.name || "[Untitled]" }}</v-list-tile-title>
+                                    </v-list-tile-content>
+                                </v-list-tile>
+                                <v-list-tile ripple @click="goto('channel/' + userInfo.auth_address + '/' + id + '/p/' + playlist.playlist_id)">
+                                    <v-list-tile-content>
+                                        <v-list-tile-title><em>View</em></v-list-tile-title>
+                                    </v-list-tile-content>
+                                </v-list-tile>
+                                <v-list-tile ripple @click="deletePlaylist(playlist)">
+                                    <v-list-tile-content>
+                                        <v-list-tile-title><em>Delete</em></v-list-tile-title>
+                                    </v-list-tile-content>
+                                </v-list-tile>
+                            </v-list-group>
+                            <v-divider v-if="playlists[playlists.length - 1] != playlist" :key="playlist.playlist_id"></v-divider>
+                        </template>
+                    </v-list>
+                    <!--<div v-for="playlist in playlists" style="margin-bottom: 8px;">
                         <strong>{{ playlist.name || "[Untitled]" }}</strong> | <a href="#" @click.prevent="deletePlaylist(playlist)">Delete</a>
-                    </div>
+                        <v-divider></v-divider>
+                    </div>-->
+                    <v-divider></v-divider>
                     <v-text-field placeholder="Playlist Name" v-model="playlistName"></v-text-field>
                     <v-btn ripple color="primary" @click="addPlaylist()">Add a Playlist</v-btn>
                 </v-tab-item>
@@ -51,7 +146,7 @@
     var video_list_item = require("../vue_components/video_list_item.vue");
 
 	module.exports = {
-		props: ["theme", "userInfo", "langTranslation"],
+		props: ["theme", "userInfo", "langTranslation", "userChannels"],
 		name: "channel-settings",
 		data: () => {
 			return {
@@ -78,10 +173,15 @@
 			});
             this.ZiteName = this.langTranslation["KxoId"];*/
             
+            this.channel = null;
+            this.name = "";
+            this.toolbar_color = "";
+            this.background_color = "";
+            this.currentTab = 0;
+            this.videos = [];
+            this.playlists = [];
+
             this.id = Router.currentParams["id"];
-		},
-		mounted: function() {
-            var self = this;
             
             this.getChannel();
             this.getPlaylists();
@@ -92,6 +192,9 @@
                 self.getPlaylists();
                 self.getVideos();
 			});
+		},
+		mounted: function() {
+            var self = this;
 		},
 		computed: {
 			isLoggedIn: function() {
@@ -131,7 +234,7 @@
             getVideos: function() {
                 var self = this;
 
-                page.cmdp("dbQuery", ["SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.userInfo.auth_address + "\" AND ref_channel_id=" + this.id + " ORDER BY date_added DESC LIMIT 8"])
+                page.cmdp("dbQuery", ["SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.userInfo.auth_address + "\" AND ref_channel_id=" + this.id + " ORDER BY date_added DESC"])
                     .then((results) => {
                         console.log(results);
                         self.videos = results;
@@ -179,7 +282,8 @@
                         }
                     }
                 }, function ({ date_updated, auth_address }) {
-                    Router.navigate('channel/' + auth_address + '/' + self.channel.channel_id);
+                    //Router.navigate('channel/' + auth_address + '/' + self.channel.channel_id);
+                    window.history.back();
                 });
             },
             deleteChannel: function() {

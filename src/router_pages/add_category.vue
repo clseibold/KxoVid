@@ -1,13 +1,15 @@
 <template>
 	<v-container fluid>
-        <v-container style="max-width: 700px;" v-if="userInfo">
-            <div class="title" style="text-align: center;">Add Category/Hub</div>
+        <v-container role="main" aria-labelledby="title" style="max-width: 700px;" v-if="userInfo">
+            <div id="title" class="title" style="text-align: center;">Add Category/Hub</div>
 
-            <v-text-field v-model="name" label="Name"></v-text-field>
-            <v-text-field v-model="address" label="Address" @change="addressChanged()"></v-text-field>
-            <v-text-field v-model="description" label="Description" multi-line></v-text-field>
+            <div role="form">
+	            <v-text-field v-model="name" label="Name"></v-text-field>
+	            <v-text-field v-model="address" label="Address" @change="addressChanged()"></v-text-field>
+	            <v-text-field v-model="description" label="Description" multi-line></v-text-field>
 
-            <v-btn ripple color="primary" @click="addHub()">Add</v-btn>
+	            <v-btn ripple color="primary" @click="addHub()">Add</v-btn>
+	       	</div>
         </v-container>
 	</v-container>
 </template>
