@@ -184,39 +184,7 @@ makeCurOptional = (anything = false, audio = true, flac = true, video = true, zi
 }
 
 // TODO: Add flags for the filetypes to allow
-uploadBigFile = (zeroframe, mergerType, mergerAddress, auth_address, file, f = null, checkOptF = checkOptional, curoptional = ".+\\.(mp4|ogg|webm|cast|MP4|OGG|WEBM|CAST)(.piecemap.msgpack)?") => {
-	var date_added = Date.now();
-    var orig_filename_list = file.name.split(".");
-    var filename = orig_filename_list[0].replace(/\s/g, "_").replace(/[^\x00-\x7F]/g, "").replace(/\'/g, "").replace(/\"/g, "").replace(/%20/g, "").replace(/%/g, "").replace(/\.([0-9]+)/g, "$1").replace(/\\/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/[^a-zA-Z0-9\.\-_+]/g, '') + "-" + date_added + "." + orig_filename_list[orig_filename_list.length - 1];
-
-    var f_path = (mergerType ? mergerType + "/" + mergerAddress + "/" : "") + "data/users/" + auth_address + "/" + filename.toLowerCase();
-    //var f_path = "merged-KxoVid/" + address + "/data/users/" + page.siteInfo.auth_address + "/" + filename.toLowerCase();
-
-    checkOptF(zeroframe, mergerType, mergerAddress, auth_address, false, () => {
-        zeroframe.cmd("bigfileUploadInit", [f_path, file.size], (init_res) => {
-            var formdata = new FormData();
-            formdata.append(file.name, file);
-
-            var req = new XMLHttpRequest();
-
-            req.upload.addEventListener("progress", console.log);
-            req.upload.addEventListener("loadend", () => {
-				console.log("Loadend");
-				// Pin file so it is excluded from the automatized optional file cleanup
-				zeroframe.cmd("optionalFilePin", { "inner_path": f_path });
-				
-                zeroframe.cmd("wrapperNotification", ["info", "Upload finished!"]);
-                if (f !== null && typeof f === "function") f(f_path);
-            });
-            req.withCredentials = true;
-            req.open("POST", init_res.url);
-            req.send(formdata);
-        });
-    }, curoptional);
-}
-
-// TODO: Add flags for the filetypes to allow
-checkOptional = (zeroframe, mergerType, mergerAddress, auth_address, doSignPublish, f = null, curoptional = ".+\\.(mp4|ogg|webm|cast|MP4|OGG|WEBM|CAST)(.piecemap.msgpack)?") => {
+checkOptional_inner = (zeroframe, mergerType, mergerAddress, auth_address, doSignPublish, f = null, curoptional = ".+\\.(mp4|ogg|webm|cast|MP4|OGG|WEBM|CAST)(.piecemap.msgpack)?") => {
     /*if (!app.userInfo || !app.userInfo.cert_user_id) {
         this.cmd("wrapperNotification", ["info", "Please login first."]);
         //page.selectUser(); // TODO: Check if user has data, if not, show the registration modal.
@@ -259,4 +227,36 @@ checkOptional = (zeroframe, mergerType, mergerAddress, auth_address, doSignPubli
             if (f != null && typeof f === "function") f();
         }
     });
+}
+
+// TODO: Add flags for the filetypes to allow
+uploadBigFile = (zeroframe, mergerType, mergerAddress, auth_address, file, f = null, checkOptF = checkOptional_inner, curoptional = ".+\\.(mp4|ogg|webm|cast|MP4|OGG|WEBM|CAST)(.piecemap.msgpack)?") => {
+	var date_added = Date.now();
+    var orig_filename_list = file.name.split(".");
+    var filename = orig_filename_list[0].replace(/\s/g, "_").replace(/[^\x00-\x7F]/g, "").replace(/\'/g, "").replace(/\"/g, "").replace(/%20/g, "").replace(/%/g, "").replace(/\.([0-9]+)/g, "$1").replace(/\\/g, "").replace(/\(/g, "").replace(/\)/g, "").replace(/[^a-zA-Z0-9\.\-_+]/g, '') + "-" + date_added + "." + orig_filename_list[orig_filename_list.length - 1];
+
+    var f_path = (mergerType ? mergerType + "/" + mergerAddress + "/" : "") + "data/users/" + auth_address + "/" + filename.toLowerCase();
+    //var f_path = "merged-KxoVid/" + address + "/data/users/" + page.siteInfo.auth_address + "/" + filename.toLowerCase();
+
+    checkOptF(zeroframe, mergerType, mergerAddress, auth_address, false, () => {
+        zeroframe.cmd("bigfileUploadInit", [f_path, file.size], (init_res) => {
+            var formdata = new FormData();
+            formdata.append(file.name, file);
+
+            var req = new XMLHttpRequest();
+
+            req.upload.addEventListener("progress", console.log);
+            req.upload.addEventListener("loadend", () => {
+				console.log("Loadend");
+				// Pin file so it is excluded from the automatized optional file cleanup
+				zeroframe.cmd("optionalFilePin", { "inner_path": f_path });
+				
+                zeroframe.cmd("wrapperNotification", ["info", "Upload finished!"]);
+                if (f !== null && typeof f === "function") f(f_path);
+            });
+            req.withCredentials = true;
+            req.open("POST", init_res.url);
+            req.send(formdata);
+        });
+    }, curoptional);
 }

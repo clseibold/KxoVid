@@ -460,11 +460,11 @@ class ZeroApp extends ZeroFrame {
 	}
 
 	checkOptional(address, doSignPublish, f) {
-		checkOptional(this, "merged-KxoVid", address, page.siteInfo.auth_address, doSignPublish, f, makeCurOptional(false, false, false, true, false, false, false, "cast"));
+		checkOptional_inner(this, "merged-KxoVid", address, page.siteInfo.auth_address, doSignPublish, f, makeCurOptional(false, false, false, true, false, false, false, "cast"));
     }
 
 	uploadBigFile(address, file, f = null) {
-		uploadBigFile(this, "merged-KxoVid", address, page.siteInfo.auth_address, file, f, makeCurOptional(false, false, false, true, false, false, false, "cast"));
+		uploadBigFile(this, "merged-KxoVid", address, page.siteInfo.auth_address, file, f, checkOptional_inner, makeCurOptional(false, false, false, true, false, false, false, "cast"));
 	}
 
 	editTableData(mergerAddress, table, manageDataFunc, beforePublishCB = null) {
@@ -474,7 +474,7 @@ class ZeroApp extends ZeroFrame {
 			return page.cmdp("wrapperNotification", ["error", "You must choose a topic to post to."]);
 		}
 
-		editTableData(this, "merged-KxoVid", mergerAddress, page.siteInfo.auth_address, table, manageDataFunc, () => {
+		return editTableData(this, "merged-KxoVid", mergerAddress, page.siteInfo.auth_address, table, manageDataFunc, () => {
 			app.getUserInfo();
 			beforePublishCB();
 		});
@@ -487,7 +487,7 @@ class ZeroApp extends ZeroFrame {
 			return page.cmdp("wrapperNotification", ["error", "You must choose a topic to post to."]);
 		}
 	
-		editData(this, "merged-KxoVid", mergerAddress, page.siteInfo.auth_address, manageDataFunc, () => {
+		return editData(this, "merged-KxoVid", mergerAddress, page.siteInfo.auth_address, manageDataFunc, () => {
 			app.getUserInfo();
 			beforePublishCB();
 		});
