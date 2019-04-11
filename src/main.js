@@ -259,10 +259,10 @@ var app = new Vue({
 
 				var queryCommentsOnVideos = `SELECT
 						'comment_' || REPLACE(comments_json.directory, 'data/users/', '') || '_' || comments.comment_id  AS event_uri,
-						'article' AS type,
+						'comment' AS type,
 						comments.date_added AS date_added,
-						comments_json.cert_user_id || ' commented on your video' AS title,
-						comments.body AS body,
+						'Your Video' AS title,
+						'@' || comments_json.cert_user_id || ': ' || comments.body AS body,
 						'?/channel/' || comments.ref_video_auth_address || '/' || comments.ref_channel_id || '/v/' || comments.ref_video_id AS url
 					FROM comments
 					LEFT JOIN json AS comments_json USING (json_id)
