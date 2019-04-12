@@ -77,6 +77,7 @@
                     { col: "title", score: 5 },
                     { col: "description", score: 4 },
                     { col: "tags", score: 2 },
+                    { col: "cert_user_id", score: 2, usingJson: true }
                 ];
 
                 var orderBy = "ASC";
@@ -108,7 +109,8 @@
 
                 var searchSelects = [
                     { col: "name", score: 5 },
-                    { col: "about", score: 3 }
+                    { col: "about", score: 3 },
+                    { col: "cert_user_id", score: 2, usingJson: true }
                 ];
 
                 var query = searchDbQuery(this, this.searchQuery || "", {

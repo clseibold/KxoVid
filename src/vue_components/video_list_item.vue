@@ -93,7 +93,7 @@
 			getCategory: function() {
 				var self = this;
 
-				console.log(this.video.site);
+				//console.log(this.video.site);
 
 				var query = `
 					SELECT * FROM category_hubs
@@ -102,7 +102,7 @@
 					`;
 				page.cmdp("dbQuery", [query])
 					.then((results) => {
-						console.log("Categories: ", results);
+						//console.log("Categories: ", results);
 						self.category = results[0];
 					});
 			},
