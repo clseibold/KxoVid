@@ -33,7 +33,7 @@
 		    		<v-list-tile-title>ZeroMedium</v-list-tile-title>
 		    	</v-list-tile>
 		    	<v-list-tile href="/ZeroExchange.bit" @click="gotoLink('/ZeroExchange.bit')">
-		    		<v-list-tile-title>ZeroExchange</v-list-tile-title>
+		    		<v-list-tile-title>KxoQA</v-list-tile-title>
 		    	</v-list-tile>
 		    	<v-list-tile href="/1LqcxtENM69yBggxPYLaj87J4bqon5SVwU" @click="gotoLink('/1LqcxtENM69yBggxPYLaj87J4bqon5SVwU')">
 		    		<v-list-tile-title>KxoHub (ZeroMe Hub)</v-list-tile-title>
