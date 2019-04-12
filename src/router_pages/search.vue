@@ -77,7 +77,7 @@
                     { col: "title", score: 5 },
                     { col: "description", score: 4 },
                     { col: "tags", score: 2 },
-                    { col: "cert_user_id", score: 2, usingJson: true }
+                    { col: "cert_user_id", score: 2, usingJson: "videos_json" }
                 ];
 
                 var orderBy = "ASC";

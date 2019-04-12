@@ -13,7 +13,9 @@ function matchExpressions(searchWords, table, id_col) {
             if (usingJson) {
                 joinJson = " LEFT JOIN json AS json_" + row + "match" + i + " USING (json_id) "
             }
-            expressions += "(SELECT COUNT(" + row + ") FROM " + table + " AS " + row + "match" + i + joinJson + " WHERE " + (usingJson ? "json_" + row + "match" + i + "." + row : row) + (negate ? " NOT" : "") + " LIKE '%" + word + "%' AND " + (usingJson ? "json" : table) + "." + row + "=" + (usingJson ? "json_" : "") + row + "match" + i + "." + row + " AND " + table + "." + id_col + "=" + row + "match" + i + "." + id_col + " AND " + table + ".json_id=" + row + "match" + i + ".json_id) AS " + row + "match" + i;
+            var json_name = "json";
+            if (typeof usingJson === "string") json_name = usingJson;
+            expressions += "(SELECT COUNT(" + row + ") FROM " + table + " AS " + row + "match" + i + joinJson + " WHERE " + (usingJson ? "json_" + row + "match" + i + "." + row : row) + (negate ? " NOT" : "") + " LIKE '%" + word + "%' AND " + (usingJson ? json_name : table) + "." + row + "=" + (usingJson ? "json_" : "") + row + "match" + i + "." + row + " AND " + table + "." + id_col + "=" + row + "match" + i + "." + id_col + " AND " + table + ".json_id=" + row + "match" + i + ".json_id) AS " + row + "match" + i;
             if (i != searchWords.length - 1) {
                 expressions += ", ";
             }
