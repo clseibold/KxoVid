@@ -474,9 +474,9 @@ class ZeroApp extends ZeroFrame {
 			return page.cmdp("wrapperNotification", ["error", "You must choose a topic to post to."]);
 		}
 
-		return editTableData(this, "merged-KxoVid", mergerAddress, page.siteInfo.auth_address, table, manageDataFunc, () => {
+		return editTableData(this, "merged-KxoVid", mergerAddress, page.siteInfo.auth_address, table, manageDataFunc, function ({ date, auth_address }) {
 			app.getUserInfo();
-			beforePublishCB();
+			beforePublishCB({ date, auth_address });
 		});
 	}
 
@@ -487,9 +487,9 @@ class ZeroApp extends ZeroFrame {
 			return page.cmdp("wrapperNotification", ["error", "You must choose a topic to post to."]);
 		}
 	
-		return editData(this, "merged-KxoVid", mergerAddress, page.siteInfo.auth_address, manageDataFunc, () => {
+		return editData(this, "merged-KxoVid", mergerAddress, page.siteInfo.auth_address, manageDataFunc, function ({ date, auth_address }) {
 			app.getUserInfo();
-			beforePublishCB();
+			beforePublishCB({ date, auth_address });
 		});
 	}
 }

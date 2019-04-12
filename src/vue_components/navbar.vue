@@ -56,7 +56,7 @@
 			<span v-if="!isCasting">Start Casting</span>
 			<span v-if="isCasting">Stop Casting</span>
 		</v-tooltip>
-		<v-tooltip bottom v-if="isLoggedIn && userChannels && userChannels.length > 0" class="hidden-sm-and-down">
+		<v-tooltip bottom v-if="isLoggedIn" class="hidden-sm-and-down">
 			<v-btn slot="activator" icon @click="goto('upload')">
 				<v-icon>cloud_upload</v-icon>
 			</v-btn>

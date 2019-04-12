@@ -1,6 +1,6 @@
 <template>
     <v-list :dark="dark == 'dark'" dense>
-        <v-list-tile :class="{ 'menu-item-active': routerIsActive('upload') }" href="./?/upload" @click.prevent="goto('upload')" class="hidden-md-and-up" v-if="isLoggedIn && userChannels && userChannels.length > 0">
+        <v-list-tile :class="{ 'menu-item-active': routerIsActive('upload') }" href="./?/upload" @click.prevent="goto('upload')" class="hidden-md-and-up" v-if="isLoggedIn">
             <v-list-tile-action>
                 <v-icon>cloud_upload</v-icon>
             </v-list-tile-action>
