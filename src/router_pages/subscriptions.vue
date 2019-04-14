@@ -60,10 +60,7 @@
 					self.channels = results;
                 });*/
             this.getVideos();
-		},
-		mounted: function() {
-			var self = this;
-
+			
 			this.$emit("setcallback", "update", function(userInfo) {
 				/*page.cmdp("dbQuery", ["SELECT * FROM channels LEFT JOIN json USING (json_id)"])
 					.then((results) => {
@@ -80,6 +77,8 @@
 		},
 		methods: {
             getVideos: function() {
+				if (!this.userInfo || !this.userInfo.keyvalue || !this.userInfo.keyvalue.subscriptions) return;
+
                 var self = this;
                 var subs = this.userInfo.keyvalue.subscriptions.split('|');
                 var subsWhereQuery = "";
@@ -103,8 +102,8 @@
                 }
 
 				var query = `SELECT videos.*, videos_json.directory, videos_json.site, videos_json.cert_user_id, channels.name as channel_name FROM videos
-					LEFT JOIN json as videos_json USING (json_id)
-					LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
+					INNER JOIN json as videos_json USING (json_id)
+					INNER JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
 					LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id
 					WHERE ${subsWhereQuery}
 					ORDER BY date_added DESC`;

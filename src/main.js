@@ -221,60 +221,62 @@ var app = new Vue({
 				}
 
 				// Update FeedFollow info with subscriptions
-				var subs = that.userInfo.keyvalue.subscriptions.split('|');
-                var subsWhereQuery = "";
+				if (that.userInfo.keyvalue.subscriptions) {
+					var subs = that.userInfo.keyvalue.subscriptions.split('|');
+					var subsWhereQuery = "";
 
-                for (var i = 0; i < subs.length; i++) {
-                    var auth_address = subs[i].split(',')[0];
-                    var channel_id = subs[i].split(',')[1];
+					for (var i = 0; i < subs.length; i++) {
+						var auth_address = subs[i].split(',')[0];
+						var channel_id = subs[i].split(',')[1];
 
-                    if (channel_id == "cat") { // TODO
-                    	if (i == subs.length - 1) {
-                    		// Remove the "OR" at the end of the query
-                    		subsWhereQuery = subsWhereQuery.substring(0, subsWhereQuery.length - 4); // TODO: Kinda hacky
-                    	}
-                    	continue;
-                    }
-                    
-                    subsWhereQuery += " (ref_channel_id=" + channel_id + " AND videos_json.directory=\"data/users/" + auth_address + "\") ";
-                    if (i != subs.length - 1) {
-                        subsWhereQuery += " OR ";
-                    }
+						if (channel_id == "cat") { // TODO
+							if (i == subs.length - 1) {
+								// Remove the "OR" at the end of the query
+								subsWhereQuery = subsWhereQuery.substring(0, subsWhereQuery.length - 4); // TODO: Kinda hacky
+							}
+							continue;
+						}
+						
+						subsWhereQuery += " (ref_channel_id=" + channel_id + " AND videos_json.directory=\"data/users/" + auth_address + "\") ";
+						if (i != subs.length - 1) {
+							subsWhereQuery += " OR ";
+						}
+					}
+					
+					//console.log("Subs Query: ", subsWhereQuery);
+
+					var querySubs = `SELECT
+							'video_' || REPLACE(videos_json.directory, 'data/users/', '') || '_' || videos.video_id AS event_uri,
+							'article' AS type,
+							videos.date_added AS date_added,
+							channels.name || ': ' || videos.title AS title,
+							videos.description AS body,
+							'?/channel/' || REPLACE(videos_json.directory, 'data/users/', '') || '/' || videos.ref_channel_id || '/v/' || videos.video_id AS url
+						FROM videos
+						INNER JOIN json AS videos_json USING (json_id)
+						INNER JOIN json AS channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
+						LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id
+						WHERE ${subsWhereQuery}`;
+
+					var queryCommentsOnVideos = `SELECT
+							'comment_' || REPLACE(comments_json.directory, 'data/users/', '') || '_' || comments.comment_id  AS event_uri,
+							'comment' AS type,
+							comments.date_added AS date_added,
+							'Your Video' AS title,
+							'@' || comments_json.cert_user_id || ': ' || comments.body AS body,
+							'?/channel/' || comments.ref_video_auth_address || '/' || comments.ref_channel_id || '/v/' || comments.ref_video_id AS url
+						FROM comments
+						INNER JOIN json AS comments_json USING (json_id)
+						INNER JOIN json AS videos_json ON videos_json.directory=('data/users/' || comments.ref_video_auth_address)
+						LEFT JOIN videos ON videos.video_id=comments.ref_video_id AND videos.ref_channel_id=comments.ref_channel_id
+						WHERE comments.ref_video_auth_address='${that.userInfo.auth_address}'`;
+
+						console.log(queryCommentsOnVideos);
+
+					//console.log("Follow Query: ", querySubs);
+					page.cmdp("feedFollow", [{"Subscriptions": [querySubs, ""], "CommentsOnVideos": [queryCommentsOnVideos, ""]}])
+						.then((result) => console.log("FeedFollow: ", result));
 				}
-				
-				//console.log("Subs Query: ", subsWhereQuery);
-
-				var querySubs = `SELECT
-						'video_' || REPLACE(videos_json.directory, 'data/users/', '') || '_' || videos.video_id AS event_uri,
-						'article' AS type,
-						videos.date_added AS date_added,
-						channels.name || ': ' || videos.title AS title,
-						videos.description AS body,
-						'?/channel/' || REPLACE(videos_json.directory, 'data/users/', '') || '/' || videos.ref_channel_id || '/v/' || videos.video_id AS url
-					FROM videos
-					LEFT JOIN json AS videos_json USING (json_id)
-					LEFT JOIN json AS channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
-					LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id
-					WHERE ${subsWhereQuery}`;
-
-				var queryCommentsOnVideos = `SELECT
-						'comment_' || REPLACE(comments_json.directory, 'data/users/', '') || '_' || comments.comment_id  AS event_uri,
-						'comment' AS type,
-						comments.date_added AS date_added,
-						'Your Video' AS title,
-						'@' || comments_json.cert_user_id || ': ' || comments.body AS body,
-						'?/channel/' || comments.ref_video_auth_address || '/' || comments.ref_channel_id || '/v/' || comments.ref_video_id AS url
-					FROM comments
-					LEFT JOIN json AS comments_json USING (json_id)
-					LEFT JOIN json AS videos_json ON videos_json.directory=('data/users/' || comments.ref_video_auth_address)
-					LEFT JOIN videos ON videos.video_id=comments.ref_video_id AND videos.ref_channel_id=comments.ref_channel_id
-					WHERE comments.ref_video_auth_address='${that.userInfo.auth_address}'`;
-
-					console.log(queryCommentsOnVideos);
-
-				//console.log("Follow Query: ", querySubs);
-				page.cmdp("feedFollow", [{"Subscriptions": [querySubs, ""], "CommentsOnVideos": [queryCommentsOnVideos, ""]}])
-					.then((result) => console.log("FeedFollow: ", result));
 
 				/*page.cmdp("dbQuery", [queryCommentsOnVideos])
 					.then((results) => console.log("Comments Results: ", results));*/
@@ -297,7 +299,7 @@ var app = new Vue({
 				if (f !== null && typeof f === "function") f();
 			});
 			
-			page.cmdp("dbQuery", ["SELECT * FROM channels LEFT JOIN json USING (json_id) WHERE cert_user_id=\"" + this.siteInfo.cert_user_id + "\" AND directory=\"data/users/" + this.siteInfo.auth_address + "\""])
+			page.cmdp("dbQuery", ["SELECT * FROM channels INNER JOIN json USING (json_id) WHERE cert_user_id=\"" + this.siteInfo.cert_user_id + "\" AND directory=\"data/users/" + this.siteInfo.auth_address + "\""])
 				.then((results) => {
 					console.log(results);
 					app.userChannels = results;

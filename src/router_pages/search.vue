@@ -91,8 +91,8 @@
                     select: "videos.*, videos_json.directory, videos_json.site, videos_json.cert_user_id, channels.name as channel_name",
                     searchSelects: searchSelects,
                     table: "videos",
-                    join: `LEFT JOIN json as videos_json USING (json_id)
-                            LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
+                    join: `INNER JOIN json as videos_json USING (json_id)
+                            INNER JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
                             LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id`,
                     afterOrderBy: "date_added " + orderBy
                 });
@@ -119,7 +119,7 @@
                     select: "*",
                     searchSelects: searchSelects,
                     table: "channels",
-                    join: `LEFT JOIN json USING (json_id)`,
+                    join: `INNER JOIN json USING (json_id)`,
                     afterOrderBy: "date_added ASC" // iffy
                 });
 

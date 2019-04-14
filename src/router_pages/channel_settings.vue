@@ -207,7 +207,7 @@
                 if (this.userInfo == null || this.userInfo.auth_address == null) return;
                 
                 var self = this;
-                page.cmdp("dbQuery", ["SELECT * FROM channels LEFT JOIN json USING (json_id) WHERE channel_id=" + this.id + " AND directory=\"data/users/" + this.userInfo.auth_address + "\" LIMIT 1"])
+                page.cmdp("dbQuery", ["SELECT * FROM channels INNER JOIN json USING (json_id) WHERE channel_id=" + this.id + " AND directory=\"data/users/" + this.userInfo.auth_address + "\" LIMIT 1"])
                 .then((results) => {
                     self.channel = results[0];
                     self.name = self.channel.name;
@@ -221,7 +221,7 @@
 
                 var query = `
                     SELECT * FROM channel_playlists
-                    LEFT JOIN json USING (json_id)
+                    INNER JOIN json USING (json_id)
                     WHERE directory="data/users/${ this.userInfo.auth_address }"
                     AND ref_channel_id=${ this.id }`;
 
@@ -234,7 +234,7 @@
             getVideos: function() {
                 var self = this;
 
-                page.cmdp("dbQuery", ["SELECT * FROM videos LEFT JOIN json USING (json_id) WHERE directory=\"data/users/" + this.userInfo.auth_address + "\" AND ref_channel_id=" + this.id + " ORDER BY date_added DESC"])
+                page.cmdp("dbQuery", ["SELECT * FROM videos INNER JOIN json USING (json_id) WHERE directory=\"data/users/" + this.userInfo.auth_address + "\" AND ref_channel_id=" + this.id + " ORDER BY date_added DESC"])
                     .then((results) => {
                         console.log(results);
                         self.videos = results;

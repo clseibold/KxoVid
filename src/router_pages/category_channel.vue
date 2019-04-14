@@ -149,7 +149,7 @@
 
             var query = `
                 SELECT * FROM category_hubs
-                LEFT JOIN json USING (json_id)
+                INNER JOIN json USING (json_id)
                 WHERE address="${ this.address }"
                 LIMIT 1
                 `;
@@ -219,8 +219,8 @@
 
                 var query = `
                     SELECT videos.*, videos_json.directory, videos_json.site, videos_json.cert_user_id, channels.name as channel_name FROM videos
-                        LEFT JOIN json as videos_json USING (json_id)
-                        LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
+                        INNER JOIN json as videos_json USING (json_id)
+                        INNER JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
                         LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id
                     WHERE videos_json.site="${ this.address }"
                     ORDER BY date_added DESC
@@ -236,8 +236,8 @@
 
                 var query = `
                     SELECT videos.*, videos_json.directory, videos_json.site, videos_json.cert_user_id, channels.name as channel_name FROM videos
-                        LEFT JOIN json as videos_json USING (json_id)
-                        LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
+                        INNER JOIN json as videos_json USING (json_id)
+                        INNER JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
                         LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id
                     WHERE videos_json.site="${ this.address }"
                     ORDER BY date_added DESC

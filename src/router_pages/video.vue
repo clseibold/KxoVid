@@ -204,7 +204,7 @@
             this.video_id = Router.currentParams["videoid"];
 
             // Get Channel
-            page.cmdp("dbQuery", ["SELECT * FROM channels LEFT JOIN json USING (json_id) WHERE channel_id=" + this.id + " AND directory=\"data/users/" + this.auth_address + "\" LIMIT 1"])
+            page.cmdp("dbQuery", ["SELECT * FROM channels INNER JOIN json USING (json_id) WHERE channel_id=" + this.id + " AND directory=\"data/users/" + this.auth_address + "\" LIMIT 1"])
                 .then((results) => {
                     self.channel = results[0];
                     console.log("Channel: ", results);
@@ -370,7 +370,7 @@
             getVideo: function(getRelated = false, reloadVideo = false) {
                 var self = this;
                 var query = `SELECT *, category_hubs.name AS category_name FROM videos
-                    LEFT JOIN json USING (json_id)
+                    INNER JOIN json USING (json_id)
                     LEFT JOIN category_hubs ON json.site=category_hubs.address
                     WHERE directory='data/users/${this.auth_address}' AND ref_channel_id=${this.id} AND video_id=${this.video_id}
                     LIMIT 1`;
@@ -437,7 +437,7 @@
                 var self = this;
                 var query = `
                     SELECT comments.*, json.*, moderated_comments.id as moderated_id FROM comments
-                        LEFT JOIN json USING (json_id)
+                        INNER JOIN json USING (json_id)
                         LEFT JOIN moderated_comments ON moderated_comments.ref_comment_id=comments.comment_id AND moderated_comments.ref_comment_auth_address=REPLACE(json.directory, 'data/users/', '')
                     WHERE ref_video_auth_address="${ this.auth_address }"
                     AND ref_channel_id=${ this.id } AND ref_video_id=${ this.video_id }
@@ -470,8 +470,8 @@
                     select: "videos.*, videos_json.directory, videos_json.site, videos_json.cert_user_id, channels.name as channel_name",
                     searchSelects: searchSelects,
                     table: "videos",
-                    join: `LEFT JOIN json as videos_json USING (json_id)
-                            LEFT JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
+                    join: `INNER JOIN json as videos_json USING (json_id)
+                            INNER JOIN json as channels_json ON channels_json.directory=videos_json.directory AND channels_json.site="1HmJfQqTsfpdRinx3m8Kf1ZdoTzKcHfy2F"
                             LEFT JOIN channels ON channels.channel_id=videos.ref_channel_id AND channels.json_id=channels_json.json_id`,
                     afterOrderBy: "date_added ASC",
                     limit: 11
