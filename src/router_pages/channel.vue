@@ -90,7 +90,7 @@
                     <v-container style="max-width: 700px;">
                         <v-list :dark="content_dark" :light="content_light">
                             <template v-for="playlist in playlists">
-                                <v-list-tile @click.prevent="goto('channel/' + auth_address + '/' + id + '/p/' + playlist.playlist_id)">
+                                <v-list-tile :href="'./?/channel/' + auth_address + '/' + id + '/p/' + playlist.playlist_id" @click.prevent="goto('channel/' + auth_address + '/' + id + '/p/' + playlist.playlist_id)">
                                     <v-list-tile-title>{{ playlist.name }}</v-list-tile-title>
                                 </v-list-tile>
                                 <v-divider></v-divider>

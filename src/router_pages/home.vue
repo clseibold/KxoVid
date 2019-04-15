@@ -72,7 +72,7 @@
 					</div>-->
 					<v-list>
 						<template v-for="channel in recentChannels">
-							<v-list-tile :title="channel.name" v-bind:key="channel.channel_id + ',' + channel.directory" @click="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">
+							<v-list-tile :title="channel.name" v-bind:key="channel.channel_id + ',' + channel.directory" :href="'./?/channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id" @click.prevent="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">
 								<v-list-tile-content>
 									<v-list-tile-title>{{ channel.name }}</v-list-tile-title>
 									<v-list-tile-sub-title>{{ channel.about }}</v-list-tile-sub-title>
@@ -110,7 +110,7 @@
 
 				<v-subheader style="font-weight: 600;">New Channels</v-subheader>
 				<template v-for="channel in recentChannels">
-					<v-list-tile :title="channel.name" v-bind:key="channel.channel_id + ',' + channel.directory" @click="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">
+					<v-list-tile :title="channel.name" v-bind:key="channel.channel_id + ',' + channel.directory" :href="'./?/channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id" @click.prevent="goto('channel/' + channel.directory.replace('data/users/', '') + '/' + channel.channel_id)">
 						<v-list-tile-content>
 							<v-list-tile-title>{{ channel.name }}</v-list-tile-title>
 							<v-list-tile-sub-title>{{ channel.about }}</v-list-tile-sub-title>

@@ -73,12 +73,12 @@
                                         <v-list-tile-title>{{ video.title || "[Untitled]" }}</v-list-tile-title>
                                     </v-list-tile-content>
                                 </v-list-tile>
-                                <v-list-tile ripple @click="goto('channel/' + userInfo.auth_address + '/' + id + '/v/' + video.video_id)">
+                                <v-list-tile ripple :href="'./?/channel/' + userInfo.auth_address + '/' + id + '/v/' + video.video_id" @click.prevent="goto('channel/' + userInfo.auth_address + '/' + id + '/v/' + video.video_id)">
                                     <v-list-tile-content>
                                         <v-list-tile-title><em>View</em></v-list-tile-title>
                                     </v-list-tile-content>
                                 </v-list-tile>
-                                <v-list-tile ripple @click="goto('channel/settings/' + id + '/v/' + video.video_id)">
+                                <v-list-tile ripple :href="'./?/channel/settings/' + id + '/v/' + video.video_id" @click.prevent="goto('channel/settings/' + id + '/v/' + video.video_id)">
                                     <v-list-tile-content>
                                         <v-list-tile-title><em>Edit</em></v-list-tile-title>
                                     </v-list-tile-content>
@@ -111,7 +111,7 @@
                                         <v-list-tile-title>{{ playlist.name || "[Untitled]" }}</v-list-tile-title>
                                     </v-list-tile-content>
                                 </v-list-tile>
-                                <v-list-tile ripple @click="goto('channel/' + userInfo.auth_address + '/' + id + '/p/' + playlist.playlist_id)">
+                                <v-list-tile ripple :href="'./?/channel/' + userInfo.auth_address + '/' + id + '/p/' + playlist.playlist_id" @click.prevent="goto('channel/' + userInfo.auth_address + '/' + id + '/p/' + playlist.playlist_id)">
                                     <v-list-tile-content>
                                         <v-list-tile-title><em>View</em></v-list-tile-title>
                                     </v-list-tile-content>

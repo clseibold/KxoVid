@@ -1,7 +1,7 @@
 <template>
 	<v-toolbar clipped-left app dark style="padding-right: 45px; padding-left: 45px;" color="primary">
 		<v-toolbar-side-icon @click.stop="toggleDrawer()"></v-toolbar-side-icon>
-		<v-toolbar-title href="./?/" style="cursor: pointer;" @click.prevent="goto('')">{{ ZiteName }} (beta)</v-toolbar-title>
+		<v-toolbar-title href="./?/" style="cursor: pointer;" @mousedown.middle="gotoLinkNewTab('./?/')" @click.prevent="goto('')">{{ ZiteName }} (beta)</v-toolbar-title>
 		<v-spacer class="hidden-md-and-down">
 			<div style="width: 350px; margin: auto;">
 				<!--<v-spacer class="hidden-md-and-down"></v-spacer>-->
@@ -142,6 +142,9 @@
 			},
 			gotoLink: function(to) {
 				window.location = to;
+			},
+			gotoLinkNewTab: function(to) {
+				page.cmd("wrapperOpenWindow", [to, "_blank"]);
 			},
 			signout: function() {
 				page.signout();

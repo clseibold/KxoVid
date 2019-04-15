@@ -14,7 +14,7 @@
         <v-divider style="margin-top: 8px;"></v-divider>
     </div>-->
 	<div :title="video.title || '[Untitled]'">
-		<v-list-tile ripple @click="gotoVideo()">
+		<v-list-tile ripple :href="videoLink" @click="gotoVideo()">
 			<v-list-tile-content>
 				<v-list-tile-title>{{ video.title || "[Untitled]" }}</v-list-tile-title>
 				<v-list-tile-title style="font-size: 14px;">
@@ -58,9 +58,6 @@
 			this.getCategory();
 			this.getFileInfo();
 		},
-		mounted: function() {
-            var self = this;
-		},
 		computed: {
 			isLoggedIn: function() {
 				if (this.userInfo == null) return false;
@@ -68,6 +65,13 @@
             },
             getVideoDate: function() {
                 return moment(this.video.date_added).fromNow();
+			},
+			videoLink: function() {
+				if (!this.edit) {
+					return './?/channel/' + this.video.directory.replace('data/users/', '') + '/' + this.video.ref_channel_id + '/v/' + this.video.video_id;
+				} else {
+					return './?/channel/settings/' + this.video.ref_channel_id + '/v/' + this.video.video_id;
+				}
 			},
 			getSize: function() {
                 if (!this.fileInfo) return "";
